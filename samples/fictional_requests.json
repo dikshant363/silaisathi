@@ -1,0 +1,74 @@
+[
+  {
+    "id": "sample-01",
+    "title": "Blue Kurti with Sunday Deadline (Hinglish)",
+    "description": "Standard prompt with relative weekday deadline and partial payment",
+    "language": "hinglish",
+    "customer_name": "Meena Kumari",
+    "customer_phone": "9876543210",
+    "request_text": "Bhaiya, blue kurti Sunday tak chahiye. Length 44, chest 38, sleeves 18. Pichhli baar wali fitting rakhna. 300 advance de diya."
+  },
+  {
+    "id": "sample-02",
+    "title": "Designer Silk Blouse with Deep Back (Hindi)",
+    "description": "Festive wear blouse with detailed styling instructions and full payment",
+    "language": "hindi",
+    "customer_name": "सुनीता शर्मा",
+    "customer_phone": "9811223344",
+    "request_text": "नमस्ते भैया, लाल बनारसी सिल्क ब्लाउज सिलना है। लंबाई 14, चेस्ट 34, कमर 28, स्लीव्स 10 इंच। पीछे गहरा गोल गला और लटकन लगानी है। कुल 800 रुपये तय हुए हैं, 500 रुपये एडवांस दे दिए हैं। अगले शुक्रवार तक दे देना।"
+  },
+  {
+    "id": "sample-03",
+    "title": "Salwar Suit with Alteration Notes (Hinglish)",
+    "description": "Cotton salwar suit with specific pocket requirements and missing total price",
+    "language": "hinglish",
+    "customer_name": "Kavita Verma",
+    "customer_phone": "9823456789",
+    "request_text": "Green cotton salwar suit banana hai. Kurti length 42, chest 36, waist 32, hip 40, shoulder 14. Salwar length 38 with right side zip pocket. Kal shaam ko trial ke liye aungi. 200 rs advance cash diya."
+  },
+  {
+    "id": "sample-04",
+    "title": "Gents Kurta Pajama (English)",
+    "description": "Formal cotton linen kurta with Mandarin collar and fixed calendar deadline",
+    "language": "english",
+    "customer_name": "Rajesh Malhotra",
+    "customer_phone": "9845012345",
+    "request_text": "Please stitch a white linen kurta pajama for wedding function. Kurta length 40 inches, chest 42, waist 40, sleeve 25, neck 16. Mandarin collar with concealed placket. Need it by 28th October 2026. Total agreed 1500, paid 500 advance."
+  },
+  {
+    "id": "sample-05",
+    "title": "Lehenga Choli with Urgent Timeline (Hindi)",
+    "description": "Urgent bridal party lehenga fitting with full measurements and advance",
+    "language": "hindi",
+    "customer_name": "पूजा गुप्ता",
+    "customer_phone": "9899887766",
+    "request_text": "पिंक जॉर्जेट लहंगा चोली तैयार करनी है। चोली लंबाई 15, चेस्ट 36, कमर 30। लहंगा लंबाई 42, घेर ज्यादा रखना और कैनकैन लगाना। परसों दोपहर तक हर हाल में चाहिए। 2500 कुल बात हुई थी, 1000 एडवांस जमा है।"
+  },
+  {
+    "id": "sample-06",
+    "title": "Trouser & Shirt Alteration (Hinglish)",
+    "description": "Alteration request with waist tightening and inseam shortening",
+    "language": "hinglish",
+    "customer_name": "Amit Saxena",
+    "customer_phone": "9712345670",
+    "request_text": "Black formal trouser ki fitting tight karni hai. Waist 34 se 32 karna hai aur bottom 1 inch fold karna hai. Urgent hai kal subah 11 baje tak chahiye. 150 rs pura advance le lijiye."
+  },
+  {
+    "id": "sample-07",
+    "title": "Princess Cut Blouse (English)",
+    "description": "Padded princess cut blouse with boat neck specification",
+    "language": "english",
+    "customer_name": "Deepika Iyer",
+    "customer_phone": "9870123456",
+    "request_text": "Need a golden brocade princess cut blouse with padded cups and boat neck front and back. Chest 34, waist 29, length 13.5, shoulder 14. Delivery next Monday. 1200 rupees total, 400 advance given."
+  },
+  {
+    "id": "sample-08",
+    "title": "Simple Daily Wear Kurti (Hinglish)",
+    "description": "Minimal information request testing default handling for missing price and date",
+    "language": "hinglish",
+    "customer_name": "Anjali Gupta",
+    "customer_phone": "",
+    "request_text": "Yellow printed daily wear kurti sil do. Chest 38, length 40. Normal loose fitting rakhna."
+  }
+]

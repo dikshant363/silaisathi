@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+.venv/
+env/
+venv/
+ENV/
+
+# Local databases and customer data
+data/
+*.db
+*.sqlite
+*.sqlite3
+backups/
+
+# Logs and runtime files
+*.log
+.coverage
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+
+# Streamlit local state
+.streamlit/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Sensitive local config
+.env
+.env.local
