@@ -1,7 +1,7 @@
 # SilaiSathi (सिलाईसाथी)
 ### Offline-First AI Assistant Workstation for Independent Tailoring Shops & Boutiques
 
-[![CI](https://github.com/silaisathi/silaisathi/actions/workflows/ci.yml/badge.svg)](https://github.com/silaisathi/silaisathi/actions/workflows/ci.yml)
+[![CI](https://github.com/dikshant363/silaisathi/actions/workflows/ci.yml/badge.svg)](https://github.com/dikshant363/silaisathi/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.11+](https://img.shields.io/badge/Python-3.11%2B-brightgreen.svg)](pyproject.toml)
 [![Local Inference: Ollama](https://img.shields.io/badge/Inference-Ollama%20(Local)-orange.svg)](https://ollama.com)
@@ -97,7 +97,7 @@ flowchart TD
 
 ### Step 1: Clone the Repository
 ```bash
-git clone https://github.com/silaisathi/silaisathi.git
+git clone https://github.com/dikshant363/silaisathi.git
 cd silaisathi
 ```
 
