@@ -30,6 +30,7 @@ from silaisathi.extraction import (
     generate_sample_draft,
 )
 from silaisathi.schemas import (
+    FlagSeverity,
     JobCard,
     JobStatus,
     MeasurementUnit,
@@ -451,3 +452,105 @@ def test_offline_sample_generator():
     assert draft.advance_paid == 200.0
     # Must clearly label that this is an offline heuristic preview
     assert any("PREVIEW ONLY" in flag.message for flag in draft.review_flags)
+
+
+# ---------------------------------------------------------------------------
+# 9. Extended Validation, Plausibility & Indic Tests
+# ---------------------------------------------------------------------------
+
+
+def test_devanagari_indic_digit_normalization():
+    """Verify Devanagari numerals are converted to ASCII digits for parsing."""
+    indic_text = "लंबाई ४४, चेस्ट ३८, स्लीव्स १८, एडवांस ३००"
+    normalized = validation.normalize_indic_digits(indic_text)
+    assert "44" in normalized
+    assert "38" in normalized
+    assert "18" in normalized
+    assert "300" in normalized
+
+    # Sample extractor with Indic digits
+    draft = generate_sample_draft("kurti length ४४ chest ३८ advance ३००")
+    assert draft.measurements.get("length") == 44.0
+    assert draft.measurements.get("chest") == 38.0
+    assert draft.advance_paid == 300.0
+
+
+def test_measurement_plausibility_bounds():
+    """Verify implausible human measurements trigger warning flags."""
+    # Plausible measurements
+    good_meas = {"length": 42.0, "chest": 36.0, "waist": 30.0}
+    flags = validation.validate_measurements_plausibility(good_meas, MeasurementUnit.INCHES)
+    assert len(flags) == 0
+
+    # Implausible measurements (chest 120 inches, zero length)
+    bad_meas = {"chest": 120.0, "length": 0.0}
+    flags_bad = validation.validate_measurements_plausibility(bad_meas, MeasurementUnit.INCHES)
+    assert any(f.severity == FlagSeverity.CRITICAL for f in flags_bad)
+    assert any("Chest" in f.message and f.severity == FlagSeverity.WARNING for f in flags_bad)
+
+
+def test_duplicate_detection_permutations(temp_db: Path):
+    """Verify duplicate detection accurately flags matching jobs and ignores different customers."""
+    j1 = JobCard(
+        job_number="SS-2610-0010",
+        customer_name="Priya Sharma",
+        customer_phone="9876500000",
+        garment_type="Salwar Suit",
+        payment=PaymentInfo.from_rupees(1000.0, 500.0),
+        raw_request="Green suit banana hai 500 advance",
+    )
+    database.create_job(j1, path=temp_db)
+
+    # Identical request and customer -> Duplicate
+    dup = orders.check_potential_duplicate(
+        customer_name="Priya Sharma",
+        customer_phone="9876500000",
+        garment_type="Salwar Suit",
+        raw_request="Green suit banana hai 500 advance",
+        path=temp_db,
+    )
+    assert dup is not None
+    assert dup.job_number == "SS-2610-0010"
+
+    # Different customer name -> Not duplicate
+    not_dup = orders.check_potential_duplicate(
+        customer_name="Aarti Sharma",
+        customer_phone="9811100000",
+        garment_type="Salwar Suit",
+        raw_request="Green suit banana hai 500 advance",
+        path=temp_db,
+    )
+    assert not_dup is None
+
+
+def test_job_deletion_and_update_timestamps(temp_db: Path):
+    """Verify job update refreshes updated_at timestamp and delete removes record."""
+    job = JobCard(
+        job_number="SS-2610-0020",
+        customer_name="Test Deletion Customer",
+        garment_type="Pant",
+        payment=PaymentInfo.from_rupees(500.0, 200.0),
+    )
+    created = database.create_job(job, path=temp_db)
+    orig_updated = created.updated_at
+
+    # Update job
+    created.notes = "Updated alteration instructions"
+    updated = database.update_job(created, path=temp_db)
+    assert updated.notes == "Updated alteration instructions"
+    assert updated.updated_at >= orig_updated
+
+    # Delete non-existent job
+    assert database.delete_job(99999, path=temp_db) is False
+
+    # Delete existing job
+    assert database.delete_job(created.id, path=temp_db) is True
+    assert database.get_job_by_id(created.id, path=temp_db) is None
+
+
+def test_forbidden_status_transitions():
+    """Verify forbidden order status transitions are rejected."""
+    # Cannot jump directly from DRAFT to COMPLETED
+    assert orders.is_valid_status_transition(JobStatus.DRAFT, JobStatus.COMPLETED) is False
+    # Cannot jump directly from CONFIRMED to COMPLETED (must be In Progress -> Ready)
+    assert orders.is_valid_status_transition(JobStatus.CONFIRMED, JobStatus.COMPLETED) is False

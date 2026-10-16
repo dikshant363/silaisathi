@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import io
 from datetime import datetime
+from pathlib import Path
 
 from silaisathi import database
 from silaisathi.schemas import JobCard, JobStatus
@@ -21,13 +22,13 @@ VALID_TRANSITIONS: dict[JobStatus, set[JobStatus]] = {
 }
 
 
-def generate_job_number() -> str:
+def generate_job_number(path: Path | None = None) -> str:
     """Generate a clean, professional, sequential job number e.g. SS-2610-0042."""
     now = datetime.now()
     year_month = now.strftime("%y%m")
 
     # Count jobs created in this month
-    stats = database.get_dashboard_stats()
+    stats = database.get_dashboard_stats(path=path)
     total_existing = stats["total_jobs"] + stats["completed"]
     seq = (total_existing % 9999) + 1
 
@@ -46,6 +47,7 @@ def check_potential_duplicate(
     customer_phone: str | None,
     garment_type: str,
     raw_request: str | None = None,
+    path: Path | None = None,
 ) -> JobCard | None:
     """Check if a similar job was submitted recently to prevent accidental double-clicks."""
     if not customer_phone and not customer_name:
@@ -54,6 +56,7 @@ def check_potential_duplicate(
     recent_jobs = database.list_jobs(
         search_query=customer_phone or customer_name,
         limit=10,
+        path=path,
     )
 
     for job in recent_jobs:

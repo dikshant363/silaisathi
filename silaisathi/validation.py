@@ -61,6 +61,13 @@ WEEKDAY_MAP = {
     "raviwaar": 6,
 }
 
+DEVANAGARI_DIGITS = str.maketrans("०१२३४५६७८९", "0123456789")
+
+
+def normalize_indic_digits(text: str) -> str:
+    """Normalize Devanagari numerals (०-९) to standard ASCII digits (0-9)."""
+    return text.translate(DEVANAGARI_DIGITS)
+
 
 def validate_request_text(text: str) -> tuple[bool, str]:
     """Validate customer request text for length and cleanliness."""

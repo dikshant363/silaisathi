@@ -23,6 +23,7 @@ from silaisathi.schemas import (
 )
 from silaisathi.validation import (
     check_prompt_injection,
+    normalize_indic_digits,
     resolve_due_date,
     validate_measurements_plausibility,
     validate_request_text,
@@ -113,11 +114,12 @@ def extract_with_llm(
         raise ValueError(msg)
 
     prompt_injection_flag = check_prompt_injection(customer_request)
+    normalized_request = normalize_indic_digits(customer_request)
 
     # ChatML prefill format specifically bypasses thinking delays on reasoning models like Qwen 3.5
     prompt = (
         f"<|im_start|>system\n{SYSTEM_EXTRACTION_PROMPT}<|im_end|>\n"
-        f'<|im_start|>user\nCustomer Request:\n"""{customer_request}"""\n\nOutput JSON only:<|im_end|>\n'
+        f'<|im_start|>user\nCustomer Request:\n"""{normalized_request}"""\n\nOutput JSON only:<|im_end|>\n'
         f"<|im_start|>assistant\n<think>\nDone.\n</think>\n{{"
     )
 
@@ -377,7 +379,7 @@ def generate_sample_draft(request_text: str) -> ExtractedDraft:
     Provides a clearly labelled sample draft without pretending to be live AI output.
     Uses realistic regex heuristic extraction for fallback demo capability.
     """
-    clean_text = request_text.lower()
+    clean_text = normalize_indic_digits(request_text).lower()
 
     # Detect garment
     garment = "Kurti"
@@ -411,9 +413,9 @@ def generate_sample_draft(request_text: str) -> ExtractedDraft:
 
     # Detect advance
     adv = None
-    adv_match = re.search(r"(\d+)\s*(?:advance|adv)", clean_text) or re.search(
-        r"advance\s*(\d+)", clean_text
-    )
+    adv_match = re.search(
+        r"(?:advance|adv)\s*(?:rs|rupees|cash)?\s*(\d+)", clean_text
+    ) or re.search(r"(\d+)\s*(?:rs|rupees)?\s*(?:advance|adv)", clean_text)
     if adv_match:
         adv = float(adv_match.group(1))
 
