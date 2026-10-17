@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>/ — graphify tree viewer</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      margin: 20px 0 0 24px;
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: #1e3a56;
+    }
+    .controls {
+      margin: 20px 0 15px 24px;
+    }
+    button {
+      margin-right: 10px;
+      padding: 8px 18px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s ease-in-out;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    button:active {
+      background: #004085;
+    }
+    #tree-container {
+      width: calc(100vw - 48px); /* Adjust for body margin/padding */
+      height: 85vh;
+      overflow: auto;
+      border-radius: 8px;
+      background: #fff;
+      margin-left: 24px;
+      margin-right: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 1px solid #ddd;
+    }
+    svg {
+      background: #fff;
+      border-radius: 8px;
+      display: block; /* Important for D3 */
+    }
+    .node circle {
+      stroke-width: 2.5px;
+    }
+    .node text { /* Base style for the <text> container */
+      font: 13px 'Segoe UI', sans-serif;
+      paint-order: stroke fill; /* Ensures text is readable over lines */
+      stroke: #fff; /* White halo */
+      stroke-width: 3px; /* Halo thickness */
+      stroke-linejoin: round;
+      stroke-opacity: 0.85; /* Halo opacity */
+    }
+    .link {
+      fill: none;
+      stroke-opacity: 0.7;
+      stroke-width: 2px;
+    }
+  </style>
+</head>
+<body>
+  <h1>/ — Knowledge Graph</h1>
+  <div class="controls">
+    <button onclick="expandAll()">Expand All</button>
+    <button onclick="collapseAll()">Collapse All</button>
+    <button onclick="resetView()">Reset View</button>
+  </div>
+  <div id="tree-container">
+    <svg id="tree-svg" width="6000" height="8000"></svg>
+  </div>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script>
+    const initialJsonData = {"name":"/","total_count":281,"children":[{"name":"app.py","total_count":2,"children":[{"name":"SilaiSathi \u2014 Local-First AI Assistant Workstation for Tailoring Shops.\u2026","total_count":1,"children":[]},{"name":"switch_view()","total_count":1,"children":[]}]},{"name":"docs","total_count":27,"children":[{"name":"DEMO_SCRIPT.md","total_count":10,"children":[{"name":"[0:00 - 0:25] 1. The Tailoring Problem","total_count":1,"children":[]},{"name":"[0:25 - 0:50] 2. Natural-Language Request & Local AI Extraction","total_count":1,"children":[]},{"name":"[0:50 - 1:20] 3. Safe Verification: Ambiguity & Truthful Unknowns","total_count":1,"children":[]},{"name":"[1:20 - 1:40] 4. Save to Local SQLite & Instant Search","total_count":1,"children":[]},{"name":"[1:40 - 2:00] 5. Dual-Language Karigar Work Slip & Offline Proof","total_count":1,"children":[]},{"name":"DEMO_SCRIPT.md","total_count":1,"children":[]},{"name":"Fallback Scenario: Demonstrating Without Ollama Running","total_count":1,"children":[]},{"name":"Prerequisites","total_count":1,"children":[]},{"name":"SilaiSathi: 2-Minute Demonstration Script","total_count":1,"children":[]},{"name":"Walkthrough Timeline (Total: ~2 Minutes)","total_count":1,"children":[]}]},{"name":"DEVTO_SUBMISSION.md","total_count":17,"children":[{"name":"2-Minute Walkthrough Summary:","total_count":1,"children":[]},{"name":"Code","total_count":1,"children":[]},{"name":"Core Capabilities","total_count":1,"children":[]},{"name":"Demo","total_count":1,"children":[]},{"name":"Deterministic Financial Arithmetic (Paise-Based)","total_count":1,"children":[]},{"name":"DEVTO_SUBMISSION.md","total_count":1,"children":[]},{"name":"Enter SilaiSathi (\u0938\u093f\u0932\u093e\u0908\u0938\u093e\u0925\u0940)","total_count":1,"children":[]},{"name":"How I Built It","total_count":1,"children":[]},{"name":"Key Architectural Excerpt: ChatML Prefill Bypasses Reasoning Delays","total_count":1,"children":[]},{"name":"Measured Performance & Test Results","total_count":1,"children":[]},{"name":"My Agent Session","total_count":1,"children":[]},{"name":"My First User","total_count":1,"children":[]},{"name":"Prize Categories","total_count":1,"children":[]},{"name":"Technical Stack","total_count":1,"children":[]},{"name":"Verification Evidence: Strict Network Isolation Test","total_count":1,"children":[]},{"name":"What I Built","total_count":1,"children":[]},{"name":"Why Does Open Innovation Matter?","total_count":1,"children":[]}]}]},{"name":"HACKTOBERFEST_SUBMISSION_GUIDE.md","total_count":11,"children":[{"name":"1. Project Pitch","total_count":1,"children":[]},{"name":"2. Architecture: Where Graphify Fits","total_count":1,"children":[]},{"name":"3. Measurable Value: Empirical Benchmark (Graphify vs. Naive Grep)","total_count":1,"children":[]},{"name":"4. Live Demonstration Script (Step-by-Step)","total_count":1,"children":[]},{"name":"5. Verification & Test Suite Summary","total_count":1,"children":[]},{"name":"Benchmark 1: Core Domain Abstraction (`PaymentInfo`)","total_count":1,"children":[]},{"name":"Benchmark 2: Tracing the Real-World `POPULAR_MEASUREMENTS` Crash","total_count":1,"children":[]},{"name":"HACKTOBERFEST_SUBMISSION_GUIDE.md","total_count":1,"children":[]},{"name":"In-App Workstation Demo","total_count":1,"children":[]},{"name":"SilaiSathi \u00d7 Graphify: Pre-Mutation Architectural Radar & Knowledge Graph","total_count":1,"children":[]},{"name":"Why Open-Source AI & Local Knowledge Graphs Matter","total_count":1,"children":[]}]},{"name":"pyproject.toml","total_count":1,"children":[{"name":"silaisathi","total_count":1,"children":[]}]},{"name":"README.md","total_count":31,"children":[{"name":"1. Developer CLI: `scripts/graph_inspector.py`","total_count":1,"children":[]},{"name":"1. Problem Statement","total_count":1,"children":[]},{"name":"1. Workshop Job Desk (Dashboard)","total_count":1,"children":[]},{"name":"10. Project Structure","total_count":1,"children":[]},{"name":"11. License","total_count":1,"children":[]},{"name":"2. Core Architecture & Local-First Principles","total_count":1,"children":[]},{"name":"2. Empirical Benchmark: Naive Grep vs. Graphify AST","total_count":1,"children":[]},{"name":"2. Natural-Language AI Assistant","total_count":1,"children":[]},{"name":"3. In-App Interactive Architecture Radar","total_count":1,"children":[]},{"name":"3. Product Features & Workflow","total_count":1,"children":[]},{"name":"3. Review & Approval Screen","total_count":1,"children":[]},{"name":"4. Extracting and Updating the Graph","total_count":1,"children":[]},{"name":"4. Hardware & Testing Environment","total_count":1,"children":[]},{"name":"4. Karigar Work Slip (Printable Workshop Receipt)","total_count":1,"children":[]},{"name":"5. Data Privacy & Backups","total_count":1,"children":[]},{"name":"5. Quickstart & Installation","total_count":1,"children":[]},{"name":"6. Demonstrating Offline Operation","total_count":1,"children":[]},{"name":"7. Automated Testing & Code Quality","total_count":1,"children":[]},{"name":"8. Graphify Architectural Knowledge Graph & Agent Radar","total_count":1,"children":[]},{"name":"9. Privacy & Security Model","total_count":1,"children":[]},{"name":"Deterministic Safety Boundaries","total_count":1,"children":[]},{"name":"Offline-First AI Assistant Workstation for Independent Tailoring Shops & Boutiques","total_count":1,"children":[]},{"name":"README.md","total_count":1,"children":[]},{"name":"Run Linter & Formatter","total_count":1,"children":[]},{"name":"Run Unit Tests","total_count":1,"children":[]},{"name":"SilaiSathi (\u0938\u093f\u0932\u093e\u0908\u0938\u093e\u0925\u0940)","total_count":1,"children":[]},{"name":"Step 1: Clone the Repository","total_count":1,"children":[]},{"name":"Step 2: Set Up Python Environment","total_count":1,"children":[]},{"name":"Step 3: Install and Run Ollama","total_count":1,"children":[]},{"name":"Step 4: Launch SilaiSathi Workstation","total_count":1,"children":[]},{"name":"Why Graphify in SilaiSathi?","total_count":1,"children":[]}]},{"name":"scripts","total_count":18,"children":[{"name":"graph_inspector.py","total_count":18,"children":[{"name":"Check whether the knowledge graph is synchronized with the current Git HEAD.","total_count":1,"children":[]},{"name":"check_freshness()","total_count":1,"children":[]},{"name":"compare_with_grep()","total_count":1,"children":[]},{"name":"Compute the transitive blast radius (reverse caller dependency tree) if a\u2026","total_count":1,"children":[]},{"name":"compute_blast_radius()","total_count":1,"children":[]},{"name":"Execute an empirical comparison between naive regex grep and Graphify AST\u2026","total_count":1,"children":[]},{"name":"find_nodes_by_symbol()","total_count":1,"children":[]},{"name":"Format structured results into clean, readable terminal output.","total_count":1,"children":[]},{"name":"format_cli_output()","total_count":1,"children":[]},{"name":"get_graph_summary()","total_count":1,"children":[]},{"name":"Inspect a symbol's immediate architectural neighborhood in the graph.","total_count":1,"children":[]},{"name":"inspect_symbol()","total_count":1,"children":[]},{"name":"Load and validate the Graphify JSON knowledge graph. Raises: FileNotFoundError:\u2026","total_count":1,"children":[]},{"name":"load_graph()","total_count":1,"children":[]},{"name":"main()","total_count":1,"children":[]},{"name":"Return high-level architectural metrics and god nodes from the graph.","total_count":1,"children":[]},{"name":"Search for nodes matching a given symbol name (exact or substring).","total_count":1,"children":[]},{"name":"SilaiSathi Graph Inspector \u2014 Developer Tool & Pre-Mutation Radar. Integrates\u2026","total_count":1,"children":[]}]}]},{"name":"silaisathi","total_count":94,"children":[{"name":"__init__.py","total_count":1,"children":[{"name":"SilaiSathi: Offline-First AI Assistant for Tailoring Shops.","total_count":1,"children":[]}]},{"name":"config.py","total_count":3,"children":[{"name":"Application configuration and environment settings for SilaiSathi. Strictly\u2026","total_count":1,"children":[]},{"name":"Ensure data and backup directories exist.","total_count":1,"children":[]},{"name":"ensure_data_directories()","total_count":1,"children":[]}]},{"name":"database.py","total_count":27,"children":[{"name":"_row_to_job()","total_count":1,"children":[]},{"name":"backup_database()","total_count":1,"children":[]},{"name":"Compute dashboard metric counters.","total_count":1,"children":[]},{"name":"Convert a SQLite row into a validated JobCard Pydantic object.","total_count":1,"children":[]},{"name":"Create a point-in-time timestamped backup copy of the SQLite database.","total_count":1,"children":[]},{"name":"create_job()","total_count":1,"children":[]},{"name":"Delete a job card by ID.","total_count":1,"children":[]},{"name":"delete_job()","total_count":1,"children":[]},{"name":"Fetch a single job card by its numeric ID.","total_count":1,"children":[]},{"name":"Fetch a single job card by its unique job number.","total_count":1,"children":[]},{"name":"get_connection()","total_count":1,"children":[]},{"name":"get_dashboard_stats()","total_count":1,"children":[]},{"name":"get_job_by_id()","total_count":1,"children":[]},{"name":"get_job_by_number()","total_count":1,"children":[]},{"name":"init_db()","total_count":1,"children":[]},{"name":"Initialize the SQLite database schema and indices.","total_count":1,"children":[]},{"name":"list_jobs()","total_count":1,"children":[]},{"name":"Open a SQLite connection with row factories and foreign keys enabled. Ensures\u2026","total_count":1,"children":[]},{"name":"Persist a new job card into the SQLite database.","total_count":1,"children":[]},{"name":"Restore the database from a verified backup file.","total_count":1,"children":[]},{"name":"restore_database()","total_count":1,"children":[]},{"name":"Search and filter job cards with pagination.","total_count":1,"children":[]},{"name":"SQLite persistence layer for SilaiSathi. Stores tailoring job cards locally and\u2026","total_count":1,"children":[]},{"name":"Update all fields of an existing job card.","total_count":1,"children":[]},{"name":"Update only the status of a job card.","total_count":1,"children":[]},{"name":"update_job()","total_count":1,"children":[]},{"name":"update_job_status()","total_count":1,"children":[]}]},{"name":"extraction.py","total_count":11,"children":[{"name":"Build, audit, and flag an ExtractedDraft from parsed JSON dictionary.","total_count":1,"children":[]},{"name":"build_draft_from_parsed()","total_count":1,"children":[]},{"name":"Check if the local Ollama server is accessible and list installed models.","total_count":1,"children":[]},{"name":"check_ollama_health()","total_count":1,"children":[]},{"name":"Clean model response by removing thinking tags and markdown code blocks.","total_count":1,"children":[]},{"name":"clean_model_output()","total_count":1,"children":[]},{"name":"extract_with_llm()","total_count":1,"children":[]},{"name":"generate_sample_draft()","total_count":1,"children":[]},{"name":"Local AI Extraction Service for SilaiSathi. Connects to local open-weight\u2026","total_count":1,"children":[]},{"name":"Offline sample generator for testing when Ollama is unavailable. Provides a\u2026","total_count":1,"children":[]},{"name":"Send customer request to local Ollama model and return structured\u2026","total_count":1,"children":[]}]},{"name":"orders.py","total_count":9,"children":[{"name":"Check if a similar job was submitted recently to prevent accidental double-\u2026","total_count":1,"children":[]},{"name":"check_potential_duplicate()","total_count":1,"children":[]},{"name":"Export job records into a sanitized CSV format safe against spreadsheet formula\u2026","total_count":1,"children":[]},{"name":"export_jobs_to_csv()","total_count":1,"children":[]},{"name":"Generate a clean, professional, sequential job number e.g. SS-2610-0042.","total_count":1,"children":[]},{"name":"generate_job_number()","total_count":1,"children":[]},{"name":"is_valid_status_transition()","total_count":1,"children":[]},{"name":"Order lifecycle management, job numbering, and safe CSV export for SilaiSathi.","total_count":1,"children":[]},{"name":"Verify if a state transition is permitted in the business workflow.","total_count":1,"children":[]}]},{"name":"printing.py","total_count":3,"children":[{"name":"Generate standalone, printer-optimized HTML tailoring work slip.","total_count":1,"children":[]},{"name":"generate_printable_html()","total_count":1,"children":[]},{"name":"Print layout and receipt generation for SilaiSathi. Produces an Apple-inspired,\u2026","total_count":1,"children":[]}]},{"name":"schemas.py","total_count":25,"children":[{"name":".advance_paid_rs()","total_count":1,"children":[]},{"name":".advance_paid_rs()","total_count":1,"children":[]},{"name":".balance_due_rs()","total_count":1,"children":[]},{"name":".balance_due_rs()","total_count":1,"children":[]},{"name":".calculate_balance_and_flags()","total_count":1,"children":[]},{"name":".display_balance()","total_count":1,"children":[]},{"name":".from_rupees()","total_count":1,"children":[]},{"name":".total_price_rs()","total_count":1,"children":[]},{"name":".total_price_rs()","total_count":1,"children":[]},{"name":".validate_advance()","total_count":1,"children":[]},{"name":".validate_measurements()","total_count":1,"children":[]},{"name":".validate_total()","total_count":1,"children":[]},{"name":"Authoritative, persisted tailoring job card approved by human tailor.","total_count":1,"children":[]},{"name":"Create PaymentInfo safely from decimal rupee amounts.","total_count":1,"children":[]},{"name":"Deterministic payment representation using integer paise to eliminate floating-\u2026","total_count":1,"children":[]},{"name":"ExtractedDraft","total_count":1,"children":[]},{"name":"Flag highlighting an ambiguous, unverified, or missing field in the draft.","total_count":1,"children":[]},{"name":"FlagSeverity","total_count":1,"children":[]},{"name":"JobCard","total_count":1,"children":[]},{"name":"JobStatus","total_count":1,"children":[]},{"name":"MeasurementUnit","total_count":1,"children":[]},{"name":"PaymentInfo","total_count":1,"children":[]},{"name":"Pydantic schemas and domain models for SilaiSathi. Enforces strict schema\u2026","total_count":1,"children":[]},{"name":"Raw structured data extracted by local LLM prior to human confirmation.","total_count":1,"children":[]},{"name":"ReviewFlag","total_count":1,"children":[]}]},{"name":"validation.py","total_count":15,"children":[{"name":"calculate_payment_info()","total_count":1,"children":[]},{"name":"check_prompt_injection()","total_count":1,"children":[]},{"name":"Deterministic financial calculations using integer paise.","total_count":1,"children":[]},{"name":"Normalize Devanagari numerals (\u0966-\u096f) to standard ASCII digits (0-9).","total_count":1,"children":[]},{"name":"normalize_indic_digits()","total_count":1,"children":[]},{"name":"resolve_due_date()","total_count":1,"children":[]},{"name":"Return True if text contains common prompt injection phrases.","total_count":1,"children":[]},{"name":"Safely parse or resolve due date text. Returns: (resolved_iso_date,\u2026","total_count":1,"children":[]},{"name":"Sanitize a value for safe CSV export to prevent spreadsheet formula injection.\u2026","total_count":1,"children":[]},{"name":"sanitize_for_csv()","total_count":1,"children":[]},{"name":"Validate customer request text for length and cleanliness.","total_count":1,"children":[]},{"name":"Validate measurements for positive values and standard human body ranges.","total_count":1,"children":[]},{"name":"validate_measurements_plausibility()","total_count":1,"children":[]},{"name":"validate_request_text()","total_count":1,"children":[]},{"name":"Validation, sanitization, and date/financial business rules for SilaiSathi.\u2026","total_count":1,"children":[]}]}]},{"name":"tests","total_count":87,"children":[{"name":"test_graph_inspector.py","total_count":21,"children":[{"name":"test_check_freshness()","total_count":1,"children":[]},{"name":"test_compare_with_grep()","total_count":1,"children":[]},{"name":"test_compute_blast_radius()","total_count":1,"children":[]},{"name":"test_find_nodes_by_symbol()","total_count":1,"children":[]},{"name":"test_format_cli_output()","total_count":1,"children":[]},{"name":"test_get_graph_summary()","total_count":1,"children":[]},{"name":"test_inspect_symbol_known()","total_count":1,"children":[]},{"name":"test_inspect_symbol_unknown()","total_count":1,"children":[]},{"name":"test_load_graph_missing()","total_count":1,"children":[]},{"name":"test_load_graph_valid()","total_count":1,"children":[]},{"name":"Tests for SilaiSathi Graph Inspector developer tool and Graphify integration.","total_count":1,"children":[]},{"name":"Verify architectural summary contains node/edge counts and god nodes.","total_count":1,"children":[]},{"name":"Verify blast radius calculation computes transitive upstream callers across\u2026","total_count":1,"children":[]},{"name":"Verify empirical comparison between flat regex text search and Graphify AST\u2026","total_count":1,"children":[]},{"name":"Verify formatting helper formats terminal output cleanly for all actions.","total_count":1,"children":[]},{"name":"Verify graceful handling for non-existent symbol.","total_count":1,"children":[]},{"name":"Verify graph freshness check against current git repository.","total_count":1,"children":[]},{"name":"Verify inspection of a core domain model shows callers and outward dependencies.","total_count":1,"children":[]},{"name":"Verify loading a nonexistent graph file raises FileNotFoundError with helpful\u2026","total_count":1,"children":[]},{"name":"Verify loading the existing graphify knowledge graph succeeds and contains\u2026","total_count":1,"children":[]},{"name":"Verify symbol lookup by exact or normalized name.","total_count":1,"children":[]}]},{"name":"test_silaisathi.py","total_count":61,"children":[{"name":"Comprehensive automated test suite for SilaiSathi. Tests: 1. Structured\u2026","total_count":1,"children":[]},{"name":"Crucial requirement: 'Sunday' must NOT silently become an assumed date without\u2026","total_count":1,"children":[]},{"name":"Empty or unstated due date leaves date as None.","total_count":1,"children":[]},{"name":"Ensure negative financial amounts raise validation errors.","total_count":1,"children":[]},{"name":"Fixture providing an isolated temporary SQLite database.","total_count":1,"children":[]},{"name":"Flag when advance payment exceeds the total price.","total_count":1,"children":[]},{"name":"Formula injection prefixes (=, +, -, @) must be escaped with a single quote.","total_count":1,"children":[]},{"name":"Prompt injection keywords must be detected and isolated as untrusted data.","total_count":1,"children":[]},{"name":"Regression test: verify 'Create New Job' button switches view to 'New Job (AI\u2026","total_count":1,"children":[]},{"name":"Regression test: verify app.py can be imported without any ImportError.","total_count":1,"children":[]},{"name":"Regression test: verify from_rupees supports both total_rs and total_rupees\u2026","total_count":1,"children":[]},{"name":"Regression test: verify POPULAR_MEASUREMENTS exists and matches\u2026","total_count":1,"children":[]},{"name":"Requests exceeding 2000 characters must be rejected.","total_count":1,"children":[]},{"name":"temp_db()","total_count":1,"children":[]},{"name":"Test extracting JSON from markdown code fences.","total_count":1,"children":[]},{"name":"Test full Create, Read, Update, Delete cycle in SQLite.","total_count":1,"children":[]},{"name":"Test Hindi relative terms 'kal' (tomorrow) and 'parso' (day after).","total_count":1,"children":[]},{"name":"Test online SQLite backup and restore verification.","total_count":1,"children":[]},{"name":"Test processing the canonical challenge prompt: 'Bhaiya, blue kurti Sunday tak\u2026","total_count":1,"children":[]},{"name":"Test searching by customer name, phone, garment type, and filtering by status.","total_count":1,"children":[]},{"name":"Test standard payment calculation with total and advance.","total_count":1,"children":[]},{"name":"Test stripping \u003cthink>...\u003c/think> generated by reasoning models like Qwen 3.5.","total_count":1,"children":[]},{"name":"test_app_startup_import()","total_count":1,"children":[]},{"name":"test_build_draft_realistic_hinglish_sample()","total_count":1,"children":[]},{"name":"test_clean_model_output_with_markdown_fence()","total_count":1,"children":[]},{"name":"test_clean_model_output_with_thinking_tags()","total_count":1,"children":[]},{"name":"test_config_popular_measurements_defined()","total_count":1,"children":[]},{"name":"test_create_new_job_button_navigation()","total_count":1,"children":[]},{"name":"test_csv_export_content_and_safety()","total_count":1,"children":[]},{"name":"test_csv_formula_injection_sanitization()","total_count":1,"children":[]},{"name":"test_database_backup_and_restore()","total_count":1,"children":[]},{"name":"test_devanagari_indic_digit_normalization()","total_count":1,"children":[]},{"name":"test_duplicate_detection_permutations()","total_count":1,"children":[]},{"name":"test_forbidden_status_transitions()","total_count":1,"children":[]},{"name":"test_job_deletion_and_update_timestamps()","total_count":1,"children":[]},{"name":"test_job_persistence_crud()","total_count":1,"children":[]},{"name":"test_job_search_and_filter()","total_count":1,"children":[]},{"name":"test_measurement_plausibility_bounds()","total_count":1,"children":[]},{"name":"test_offline_sample_generator()","total_count":1,"children":[]},{"name":"test_order_lifecycle_transitions()","total_count":1,"children":[]},{"name":"test_payment_info_excess_advance()","total_count":1,"children":[]},{"name":"test_payment_info_from_rupees_keyword_aliases()","total_count":1,"children":[]},{"name":"test_payment_info_full_values()","total_count":1,"children":[]},{"name":"test_payment_info_unknown_total()","total_count":1,"children":[]},{"name":"test_payment_negative_amounts_rejected()","total_count":1,"children":[]},{"name":"test_printable_html_truthful_labeling()","total_count":1,"children":[]},{"name":"test_prompt_injection_flagged()","total_count":1,"children":[]},{"name":"test_request_text_length_limit()","total_count":1,"children":[]},{"name":"test_resolve_empty_due_date()","total_count":1,"children":[]},{"name":"test_resolve_kal_and_parso()","total_count":1,"children":[]},{"name":"test_resolve_relative_weekday_requires_confirmation()","total_count":1,"children":[]},{"name":"Verify CSV export columns, data format, and safety escaping.","total_count":1,"children":[]},{"name":"Verify Devanagari numerals are converted to ASCII digits for parsing.","total_count":1,"children":[]},{"name":"Verify duplicate detection accurately flags matching jobs and ignores different\u2026","total_count":1,"children":[]},{"name":"Verify forbidden order status transitions are rejected.","total_count":1,"children":[]},{"name":"Verify implausible human measurements trigger warning flags.","total_count":1,"children":[]},{"name":"Verify job update refreshes updated_at timestamp and delete removes record.","total_count":1,"children":[]},{"name":"Verify offline fallback draft extracts basic info and labels preview honestly.","total_count":1,"children":[]},{"name":"Verify permissible and forbidden status transitions.","total_count":1,"children":[]},{"name":"Verify printable HTML contains required fields and explicitly labels unknowns.","total_count":1,"children":[]},{"name":"When total price is not provided, balance MUST remain unknown.","total_count":1,"children":[]}]},{"name":"verify_offline_network.py","total_count":3,"children":[{"name":"isolated_connect()","total_count":1,"children":[]},{"name":"Offline Network Isolation Verification for SilaiSathi. Simulates strict network\u2026","total_count":1,"children":[]},{"name":"run_offline_test()","total_count":1,"children":[]}]},{"name":"verify_runtime.py","total_count":2,"children":[{"name":"Live Runtime Verification Script for SilaiSathi. Tests: 1. Real local inference\u2026","total_count":1,"children":[]},{"name":"run_checks()","total_count":1,"children":[]}]}]},{"name":"THIRD_PARTY_NOTICES.md","total_count":10,"children":[{"name":"1. Streamlit","total_count":1,"children":[]},{"name":"2. Pydantic","total_count":1,"children":[]},{"name":"3. HTTPX","total_count":1,"children":[]},{"name":"4. Pytest","total_count":1,"children":[]},{"name":"5. Ruff","total_count":1,"children":[]},{"name":"6. Ollama","total_count":1,"children":[]},{"name":"7. Qwen Model Family (Alibaba Cloud)","total_count":1,"children":[]},{"name":"8. Graphify (Graphify-Labs)","total_count":1,"children":[]},{"name":"Third-Party Notices and Open Source Attribution","total_count":1,"children":[]},{"name":"THIRD_PARTY_NOTICES.md","total_count":1,"children":[]}]}]};
+
+    function transformData(jsonData) {
+        // Helper function to recursively build the children structure
+        function processNode(node, parentL1StageName) {
+            let displayName = node.name;
+            // Append total_count if it exists and is not already in the name
+            if (node.total_count !== undefined) {
+                if (!/\(Total Count: \d+\)$/.test(displayName)) {
+                    displayName += ` (Total Count: ${node.total_count})`;
+                }
+            }
+
+            const newNode = { name: displayName };
+
+            if (parentL1StageName === "Root") {
+                 newNode.originalStageName = node.name;
+            } else {
+                newNode.originalStageName = parentL1StageName;
+            }
+
+            if (node.children && node.children.length > 0) {
+                const stageNameToPass = (parentL1StageName === "Root") ? node.name : parentL1StageName;
+                newNode.children = node.children.map(child => processNode(child, stageNameToPass));
+            }
+
+            return newNode;
+        }
+
+        let rootDisplayName = jsonData.name;
+        if (jsonData.total_count !== undefined && !/\(Total Count: \d+\)$/.test(rootDisplayName)) {
+            rootDisplayName += ` (Total Count: ${jsonData.total_count})`;
+        }
+
+        return {
+            name: rootDisplayName,
+            originalStageName: "Root",
+            children: (jsonData.children || []).map(child => processNode(child, "Root"))
+        };
+    }
+
+    const treeData = transformData(initialJsonData);
+
+    // Auto-populated phaseColors: every depth-1 child of the root gets
+    // a stable colour from a bigger palette so all top-level dirs are
+    // distinguishable.
+    const PALETTE = [
+      ["#3498DB","#2980B9","#AED6F1"], ["#2ECC71","#27AE60","#A9DFBF"],
+      ["#E74C3C","#C0392B","#F5B7B1"], ["#9B59B6","#8E44AD","#D7BDE2"],
+      ["#F39C12","#D68910","#FAD7A0"], ["#1ABC9C","#117864","#A2D9CE"],
+      ["#34495E","#1B2631","#ABB2B9"], ["#E67E22","#BA4A00","#F5CBA7"],
+      ["#16A085","#0E6655","#A2D9CE"], ["#D35400","#A04000","#EDBB99"],
+      ["#7F8C8D","#566573","#D5DBDB"], ["#C0392B","#7B241C","#F5B7B1"],
+      ["#2E86C1","#1B4F72","#A9CCE3"], ["#28B463","#196F3D","#A9DFBF"],
+      ["#AF7AC5","#6C3483","#D2B4DE"],
+    ];
+    const phaseColors = { "Root": { fill: "#4A4A4A", stroke: "#333333", collapsedFill: "#6C757D" },
+                          "Default": { fill: "#BDC3C7", stroke: "#95A5A6", collapsedFill: "#ECF0F1" } };
+    (initialJsonData.children || []).forEach((c, i) => {
+      const pal = PALETTE[i % PALETTE.length];
+      phaseColors[c.name] = { fill: pal[0], stroke: pal[1], collapsedFill: pal[2] };
+    });
+
+    const levelSpecificPalettes = {
+      0: { fill: "#4A4A4A", stroke: "#333333", collapsedFill: "#6C757D" },
+      2: { fill: "#6ab04c", stroke: "#508a38", collapsedFill: "#a3d391" },
+      3: { fill: "#f0932b", stroke: "#d0730f", collapsedFill: "#f6c07e" },
+      4: { fill: "#be2edd", stroke: "#a01cb3", collapsedFill: "#e08bf2" },
+      5: { fill: "#00a8ff", stroke: "#007ac1", collapsedFill: "#74d2ff" },
+      6: { fill: "#e55039", stroke: "#c23620", collapsedFill: "#f09a8d" },
+      default: { fill: "#747d8c", stroke: "#57606f", collapsedFill: "#a4b0be" }
+    };
+
+    const svgElement = d3.select("#tree-svg");
+    const initialSvgWidth = +svgElement.attr("width");
+    const initialSvgHeight = +svgElement.attr("height");
+    const margin = { top: 40, right: 120, bottom: 80, left: 450 };
+    let width = initialSvgWidth - margin.left - margin.right;
+    let height = initialSvgHeight - margin.top - margin.bottom;
+    const duration = 500;
+    let nodeCounter = 0;
+    const g = svgElement.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+    const treemap = d3.tree().nodeSize([40, 0]);
+    let rootNode = d3.hierarchy(treeData, d => d.children);
+    rootNode.x0 = 0;
+    rootNode.y0 = 0;
+
+    if (rootNode.children) {
+      rootNode.children.forEach(d_child => {
+        if (d_child.children) { collapseBranch(d_child); }
+      });
+    }
+    updateTree(rootNode);
+
+    function collapseBranch(d) { if (d.children) { d._children = d.children; d._children.forEach(collapseBranch); d.children = null; } }
+    function expandBranch(d) { if (d._children) { d.children = d._children; d._children = null; } if (d.children) { d.children.forEach(expandBranch); } }
+    window.expandAll = () => { expandBranch(rootNode); updateTree(rootNode); };
+    window.collapseAll = () => { if (rootNode.children) { rootNode.children.forEach(collapseBranch); } updateTree(rootNode); };
+    window.resetView = () => { if (rootNode.children) { rootNode.children.forEach(d_child => { if (d_child.children || d_child._children) { collapseBranch(d_child); } }); } if (rootNode._children && !rootNode.children) { rootNode.children = rootNode._children; rootNode._children = null; } updateTree(rootNode); };
+
+    function updateTree(source) {
+      const treeLayoutData = treemap(rootNode);
+      let nodes = treeLayoutData.descendants();
+      let links = treeLayoutData.descendants().slice(1);
+
+      let minX = 0;
+      let maxX = 0;
+      if (nodes.length > 0) {
+        minX = d3.min(nodes, d => d.x);
+        maxX = d3.max(nodes, d => d.x);
+      }
+
+      let neededHeight = Math.max(initialSvgHeight, maxX - minX + margin.top + margin.bottom + 100);
+      svgElement.transition().duration(duration / 2).attr("height", neededHeight);
+      g.transition().duration(duration / 2).attr("transform", `translate(${margin.left},${margin.top - minX + 40})`);
+
+      nodes.forEach(d => { d.y = d.depth * 400; }); // Adjust horizontal separation if needed
+
+      const node = g.selectAll('g.node').data(nodes, d => d.id || (d.id = ++nodeCounter));
+      const nodeEnter = node.enter().append('g')
+        .attr('class', d => "node" + (d.children || d._children ? " node--internal" : " node--leaf") + (d._children ? " _children" : ""))
+        .attr('transform', d => `translate(${source.y0},${source.x0})`)
+        .on('click', (event, d) => { if (d.children) { d._children = d.children; d.children = null; } else if (d._children) { d.children = d._children; d._children = null; } updateTree(d); })
+        .style('cursor', d => (d.children || d._children) ? 'pointer' : 'default');
+
+      nodeEnter.append('circle').attr('r', 1e-6);
+
+      nodeEnter.append('text')
+        .attr('dy', '.35em')
+        .attr('x', d => d.children || d._children ? -14 : 14)
+        .attr('text-anchor', d => d.children || d._children ? 'end' : 'start')
+        .style("fill-opacity", 1e-6)
+        .call(wrapText, 380);
+
+      const nodeUpdate = nodeEnter.merge(node);
+      nodeUpdate.transition().duration(duration)
+        .attr('transform', d => `translate(${d.y},${d.x})`)
+        .attr('class', d => "node" + (d.children ? " node--internal" : " node--leaf") + (d._children ? " node--internal _children" : ""));
+
+      nodeUpdate.select('circle').attr('r', 8.5)
+        .style('fill', d => {
+            let palette;
+            if (d.depth === 0) {
+                palette = levelSpecificPalettes[0];
+            } else if (d.depth === 1) {
+                palette = phaseColors[d.data.originalStageName] || phaseColors.Default;
+            } else {
+                palette = levelSpecificPalettes[d.depth] || levelSpecificPalettes.default;
+            }
+            if (d._children) return palette.collapsedFill;
+            if (d.children) return palette.fill;
+            return "#fff";
+        })
+        .style('stroke', d => {
+            let palette;
+            if (d.depth === 0) {
+                palette = levelSpecificPalettes[0];
+            } else if (d.depth === 1) {
+                palette = phaseColors[d.data.originalStageName] || phaseColors.Default;
+            } else {
+                palette = levelSpecificPalettes[d.depth] || levelSpecificPalettes.default;
+            }
+            return palette.stroke;
+        });
+      nodeUpdate.select('text').style("fill-opacity", 1).call(wrapText, 380);
+
+      const nodeExit = node.exit().transition().duration(duration).attr('transform', d => `translate(${source.y},${source.x})`).remove();
+      nodeExit.select('circle').attr('r', 1e-6);
+      nodeExit.select('text').style('fill-opacity', 1e-6);
+
+      const link = g.selectAll('path.link').data(links, d => d.id);
+      const linkEnter = link.enter().insert('path', "g").attr('class', 'link').attr('d', d => { const o = { x: source.x0, y: source.y0 }; return diagonal(o, o); });
+
+      linkEnter.merge(link).transition().duration(duration).attr('d', d => diagonal(d, d.parent))
+        .style('stroke', d => {
+            const sourceNode = d.parent;
+            if (!sourceNode) return phaseColors.Default.stroke;
+            const l1AncestorName = sourceNode.data.originalStageName;
+            const colorPalette = phaseColors[l1AncestorName] || phaseColors.Default;
+            return colorPalette.stroke;
+        });
+      link.exit().transition().duration(duration).attr('d', d => { const o = { x: source.x, y: source.y }; return diagonal(o, o); }).remove();
+      nodes.forEach(d => { d.x0 = d.x; d.y0 = d.y; });
+    }
+
+    function diagonal(s, d) { return `M ${s.y} ${s.x} C ${(s.y + d.y) / 2} ${s.x}, ${(s.y + d.y) / 2} ${d.x}, ${d.y} ${d.x}`; }
+
+    function wrapText(textElements, maxWidth) {
+        const textPartColors = {
+            name: '#343a40',
+            count: '#0056b3'
+        };
+        const countRegex = /(\s\(Total Count: \d+\))$/;
+
+        textElements.each(function () {
+            const textD3 = d3.select(this);
+            const originalNodeText = textD3.datum().data.name;
+            const x = parseFloat(textD3.attr("x") || 0);
+            const initialDy = textD3.attr("dy");
+            const textAnchor = textD3.attr("text-anchor");
+            const lineHeight = 1.1;
+
+            textD3.text(null);
+
+            let namePart = originalNodeText;
+            let countPartText = "";
+
+            const countMatch = originalNodeText.match(countRegex);
+            if (countMatch && originalNodeText.endsWith(countMatch[0])) {
+                namePart = originalNodeText.substring(0, originalNodeText.length - countMatch[0].length).trim();
+                countPartText = countMatch[0].trim();
+            }
+
+            const tokens = [];
+            namePart.split(/\s+/).filter(Boolean).forEach(word => {
+                tokens.push({ text: word, type: 'name' });
+            });
+            if (countPartText) {
+                tokens.push({ text: countPartText, type: 'count' });
+            }
+
+            if (tokens.length === 0 && originalNodeText) {
+                tokens.push({ text: originalNodeText, type: 'name' });
+            }
+
+            let currentTspan = textD3.append("tspan").attr("x", x).attr("dy", initialDy);
+            if (textAnchor === "end") currentTspan.attr("text-anchor", "end");
+
+            let lineTokens = [];
+
+            for (let i = 0; i < tokens.length; i++) {
+                const tokenObj = tokens[i];
+
+                lineTokens.push(tokenObj);
+                currentTspan.text(lineTokens.map(t => t.text).join(" "));
+
+                if (currentTspan.node().getComputedTextLength() > maxWidth && lineTokens.length > 1) {
+                    lineTokens.pop();
+
+                    currentTspan.text(null);
+                    lineTokens.forEach((prevToken, idx) => {
+                        currentTspan.append("tspan")
+                            .text((idx > 0 ? " " : "") + prevToken.text)
+                            .style("fill", textPartColors[prevToken.type] || textPartColors.name)
+                            .style("font-weight", prevToken.type === 'count' ? "bold" : "normal");
+                    });
+
+                    lineTokens = [tokenObj];
+                    currentTspan = textD3.append("tspan").attr("x", x).attr("dy", lineHeight + "em");
+                    if (textAnchor === "end") currentTspan.attr("text-anchor", "end");
+                }
+            }
+
+            currentTspan.text(null);
+            lineTokens.forEach((token, idx) => {
+                currentTspan.append("tspan")
+                    .text((idx > 0 ? " " : "") + token.text)
+                    .style("fill", textPartColors[token.type] || textPartColors.name)
+                    .style("font-weight", token.type === 'count' ? "bold" : "normal");
+            });
+
+            if (textD3.selectAll("tspan > tspan").empty() && textD3.select("tspan").text().length === 0 && originalNodeText) {
+                let t = textD3.select("tspan");
+                let displayText = originalNodeText;
+                t.text(displayText).style("fill", textPartColors.name);
+                if (t.node() && t.node().getComputedTextLength() > maxWidth && displayText.length > 20) {
+                    let estimatedChars = Math.floor(maxWidth / (t.node().getComputedTextLength()/displayText.length) );
+                    displayText = displayText.substring(0, Math.max(0, estimatedChars - 3)) + "...";
+                    t.text(displayText);
+                }
+            }
+        });
+    }
+  </script>
+</body>
+</html>

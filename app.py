@@ -18,11 +18,15 @@ from silaisathi import database, orders, printing
 from silaisathi.config import (
     BACKUP_DIR,
     DEFAULT_MODEL,
+    DEMO_MODE,
     GARMENT_TYPES,
+    GEMMA_DEFAULT_MODEL,
+    IS_CLOUD_DEPLOYMENT,
     POPULAR_MEASUREMENTS,
     ensure_data_directories,
 )
 from silaisathi.extraction import (
+    check_gemma_health,
     check_ollama_health,
     extract_with_llm,
     generate_sample_draft,
@@ -122,6 +126,10 @@ st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 ensure_data_directories()
 database.init_db()
 
+# Auto-seed fictional demo data if in demo mode and database is fresh
+if DEMO_MODE and database.count_jobs() == 0:
+    database.seed_demo_data()
+
 if "active_view" not in st.session_state:
     st.session_state.active_view = "Dashboard"
 
@@ -148,13 +156,24 @@ def switch_view(view_name: str) -> None:
 # ---------------------------------------------------------------------------
 
 ollama_online, ollama_msg, installed_models = check_ollama_health()
+gemma_online, gemma_msg, gemma_models = check_gemma_health()
 
 with st.sidebar:
     st.title("✂️ SilaiSathi")
     st.caption("Offline-First Tailoring Workstation")
 
-    # Local Engine Status Indicator
-    if ollama_online:
+    # Engine Status Indicator
+    if IS_CLOUD_DEPLOYMENT:
+        st.markdown(
+            """
+            <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 8px; font-size: 12px; color: #1e40af;">
+                <strong>☁️ DigitalOcean App Platform</strong><br>
+                Cloud demonstration container.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    elif ollama_online:
         st.markdown(
             """
             <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 8px; font-size: 12px; color: #065f46;">
@@ -196,26 +215,83 @@ with st.sidebar:
 
     st.divider()
 
-    # Model selector if Ollama is online
-    if ollama_online and installed_models:
-        default_idx = (
-            installed_models.index(DEFAULT_MODEL) if DEFAULT_MODEL in installed_models else 0
-        )
-        selected_model = st.selectbox(
-            "AI Model",
-            options=installed_models,
-            index=default_idx,
-            help="Locally running open-weight model inside Ollama.",
-        )
+    # Provider & Model Selection
+    st.caption("🤖 **AI Inference Engine**")
+    default_provider_idx = 1 if (IS_CLOUD_DEPLOYMENT and gemma_online) else 0
+    provider_choice = st.radio(
+        "Provider",
+        options=["Local Ollama (Offline)", "Gemma 4 (Google Gemini API)"],
+        index=default_provider_idx,
+        help="Local Ollama runs 100% offline via loopback. Gemma 4 provides optional hosted open weights via Google Gemini API.",
+    )
+
+    if provider_choice.startswith("Local"):
+        selected_provider = "ollama"
+        if IS_CLOUD_DEPLOYMENT:
+            st.info(
+                "ℹ️ Local Ollama runs on customer workstations and is unavailable in cloud containers. Switch to Gemma 4 or test with the offline sampler."
+            )
+            selected_model = DEFAULT_MODEL
+            st.caption(f"Model ID: `{DEFAULT_MODEL}`")
+        elif ollama_online and installed_models:
+            default_idx = (
+                installed_models.index(DEFAULT_MODEL) if DEFAULT_MODEL in installed_models else 0
+            )
+            selected_model = st.selectbox(
+                "Local Model",
+                options=installed_models,
+                index=default_idx,
+                help="Locally running open-weight model inside Ollama.",
+            )
+        else:
+            selected_model = DEFAULT_MODEL
+            st.caption(f"Configured Model: `{DEFAULT_MODEL}`")
     else:
-        selected_model = DEFAULT_MODEL
-        st.caption(f"Configured Model: `{DEFAULT_MODEL}`")
+        selected_provider = "gemma"
+        if gemma_online:
+            st.markdown(
+                """
+                <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 6px 8px; font-size: 11px; color: #1e40af; margin-bottom: 8px;">
+                    <strong>🟢 Gemma 4 Ready</strong><br>
+                    Connected via Google Gemini API.
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            selected_model = st.selectbox(
+                "Cloud Model",
+                options=gemma_models or [GEMMA_DEFAULT_MODEL],
+                index=0,
+                help="Open-weights Gemma 4 model hosted via Google Gemini API.",
+            )
+        else:
+            st.markdown(
+                """
+                <div style="background-color: #fff7ed; border: 1px solid #fed7aa; border-radius: 6px; padding: 6px 8px; font-size: 11px; color: #9a3412; margin-bottom: 8px;">
+                    <strong>🟡 API Key Required</strong><br>
+                    Set <code>GEMINI_API_KEY</code> in DigitalOcean settings.
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            selected_model = GEMMA_DEFAULT_MODEL
+
+        st.caption(
+            "⚠️ *Cloud Notice: Opt-in mode transmits prompt text to Google Gemini API. Default remains 100% offline.*"
+        )
 
     st.divider()
     st.caption("🔒 **Privacy Guarantee**")
-    st.caption(
-        "• Bound to 127.0.0.1 (Loopback)\n• 0 Cloud Telemetry / External APIs\n• Data stored in local SQLite"
-    )
+    if IS_CLOUD_DEPLOYMENT:
+        st.caption(
+            "• DigitalOcean App Platform Demo\n• Ephemeral Fictional Demo Storage\n• Optional Gemma 4 Cloud Mode"
+        )
+    elif selected_provider == "ollama":
+        st.caption(
+            "• Bound to 127.0.0.1 (Loopback)\n• 0 Cloud Telemetry / External APIs\n• Data stored in local SQLite"
+        )
+    else:
+        st.caption("• Hosted Open Model Opt-In\n• Gemini API Loop\n• Data stored in local SQLite")
 
 
 # ---------------------------------------------------------------------------
@@ -460,8 +536,13 @@ elif st.session_state.active_view == "New Job (AI Assistant)":
             if not valid:
                 st.error(msg)
             else:
+                provider_label = (
+                    "Local Ollama"
+                    if selected_provider == "ollama"
+                    else "Google Gemini API (Gemma 4)"
+                )
                 with st.spinner(
-                    f"Extracting structured tailoring fields using local model `{selected_model}`..."
+                    f"Extracting structured tailoring fields using {provider_label} model `{selected_model}`..."
                 ):
                     try:
                         draft = extract_with_llm(
@@ -469,6 +550,7 @@ elif st.session_state.active_view == "New Job (AI Assistant)":
                             model_name=selected_model,
                             manual_customer_name=customer_name_in or None,
                             manual_customer_phone=customer_phone_in or None,
+                            provider=selected_provider,
                         )
                         st.session_state.current_draft = draft
                         st.session_state.editing_job = None
@@ -479,6 +561,10 @@ elif st.session_state.active_view == "New Job (AI Assistant)":
                         st.info(
                             "Tip: You can use the '🧪 Test Offline Heuristic' button right next to it to test the workflow without a running Ollama server."
                         )
+                    except ValueError as exc:
+                        st.error(f"⚠️ Validation/Configuration Error: {str(exc)}")
+                    except PermissionError as exc:
+                        st.error(f"🔒 Authentication Error: {str(exc)}")
                     except Exception as exc:
                         st.error(f"Extraction error: {str(exc)}")
 
@@ -900,7 +986,14 @@ elif st.session_state.active_view == "Data & Privacy":
         unsafe_allow_html=True,
     )
 
-    t1, t2, t3 = st.tabs(["📊 CSV Export", "💾 Database Backups", "🛡️ Privacy & Security Audit"])
+    t1, t2, t3, t4 = st.tabs(
+        [
+            "📊 CSV Export",
+            "💾 Database Backups",
+            "🛡️ Privacy & Security Audit",
+            "🧭 Architecture & Graphify Radar",
+        ]
+    )
 
     with t1:
         st.subheader("Sanitized CSV Export")
@@ -966,10 +1059,159 @@ elif st.session_state.active_view == "Data & Privacy":
         st.subheader("Privacy & Security Architecture")
         st.markdown(
             """
-            - **Local Model Inference:** Uses Ollama API bound strictly to `127.0.0.1:11434`. No customer data leaves this machine.
+            - **Local Model Inference:** Uses Ollama API bound strictly to `127.0.0.1:11434`. No customer data leaves this machine in local mode.
             - **Untrusted Input Isolation:** Natural language customer requests are treated as untrusted data and strictly validated against length and prompt-injection patterns.
             - **Deterministic Arithmetic:** The language model NEVER calculates financial balances. All currency math is executed in deterministic Python integer paise.
             - **No Hallucinated Commitments:** Relative dates (such as *"Sunday"* or *"parso"*) are flagged and require human confirmation before saving.
-            - **Local Storage Notice:** SQLite database is stored locally in `data/silaisathi.db`. It is not encrypted at rest by default; use FileVault on macOS for full-disk encryption.
+            - **Local Storage Notice:** SQLite database is stored locally. It is not encrypted at rest by default; use FileVault on macOS or encrypted volumes in cloud.
             """
         )
+
+        st.divider()
+        st.subheader("Fictional Demonstration Data Management")
+        st.caption(
+            "For public cloud evaluations (such as DigitalOcean App Platform), SilaiSathi uses strictly fictional names and requests. You can reset to a clean sample state at any time."
+        )
+        if st.button(
+            "🔄 Reset Fictional Demo Data",
+            help="Clears current job records and restores standard fictional demo cards",
+        ):
+            seeded_count = database.seed_demo_data(force_reset=True)
+            st.success(
+                f"Successfully reset database with {seeded_count} clean fictional demo job cards."
+            )
+            st.rerun()
+
+    with t4:
+        st.subheader("Architecture Knowledge Graph & Agent Radar")
+        st.caption(
+            "Powered by Graphify (Tree-Sitter AST, Community Clustering & Dependency Pathing)"
+        )
+
+        try:
+            from scripts.graph_inspector import (
+                DEFAULT_GRAPH_PATH,
+                check_freshness,
+                compute_blast_radius,
+                get_graph_summary,
+                inspect_symbol,
+                load_graph,
+            )
+
+            if DEFAULT_GRAPH_PATH.exists():
+                graph_data = load_graph(DEFAULT_GRAPH_PATH)
+                summary = get_graph_summary(graph_data)
+                freshness = check_freshness(graph_data)
+
+                # Status row
+                s_col1, s_col2, s_col3, s_col4 = st.columns(4)
+                with s_col1:
+                    st.metric("Total Symbols (Nodes)", summary["total_nodes"])
+                with s_col2:
+                    st.metric("Relationships (Edges)", summary["total_edges"])
+                with s_col3:
+                    st.metric("Communities", summary["total_communities"])
+                with s_col4:
+                    if freshness["is_fresh"]:
+                        st.success(f"🟢 Fresh ({freshness['built_at'][:7]})")
+                    else:
+                        st.warning(
+                            f"🟡 Stale ({freshness['built_at'][:7]} vs {freshness['current_head'][:7]})"
+                        )
+
+                st.divider()
+
+                # Core Abstractions (God Nodes)
+                st.write("**Top Architectural Hubs ('God Nodes')**")
+                god_rows = [
+                    {
+                        "Symbol": g["label"],
+                        "Total Degree": g["total_degree"],
+                        "Inward Callers": g["in_degree"],
+                        "Outward Dependencies": g["out_degree"],
+                        "Source File": g["source_file"],
+                    }
+                    for g in summary["god_nodes"][:5]
+                ]
+                st.dataframe(god_rows, use_container_width=True)
+
+                st.divider()
+
+                # Interactive Symbol Inspector & Blast Radius
+                st.write("**Pre-Mutation Symbol Inspector & Blast Radius Radar**")
+                st.caption(
+                    "Inspect how symbols connect and see what upstream modules break before making changes."
+                )
+
+                sample_symbols = [
+                    "PaymentInfo",
+                    "JobCard",
+                    "POPULAR_MEASUREMENTS",
+                    "JobStatus",
+                    "create_job",
+                    "extract_with_llm",
+                ]
+                chosen_symbol = st.selectbox(
+                    "Select symbol to inspect (or choose Custom):",
+                    options=sample_symbols + ["Custom..."],
+                )
+                if chosen_symbol == "Custom...":
+                    query_symbol = st.text_input("Enter symbol name:", value="PaymentInfo")
+                else:
+                    query_symbol = chosen_symbol
+
+                if query_symbol:
+                    insp = inspect_symbol(graph_data, query_symbol)
+                    if insp.get("found"):
+                        node = insp["node"]
+                        blast = compute_blast_radius(graph_data, query_symbol, max_depth=2)
+
+                        b_c1, b_c2, b_c3 = st.columns(3)
+                        with b_c1:
+                            st.write(
+                                f"**Source:** `{node.get('source_file')}:{node.get('source_location')}`"
+                            )
+                            st.write(f"**Community:** Community {node.get('community')}")
+                        with b_c2:
+                            st.write(f"**Inward Callers:** `{insp['inward_callers_count']}`")
+                            st.write(f"**Outward Deps:** `{insp['outward_dependencies_count']}`")
+                        with b_c3:
+                            st.metric(
+                                "Transitive Blast Radius", f"{blast['blast_radius_count']} nodes"
+                            )
+
+                        st.write(
+                            f"**Transitively Impacted Files ({len(blast['affected_files'])}):**"
+                        )
+                        st.write(", ".join([f"`{f}`" for f in blast["affected_files"]]))
+
+                        if insp["inward_callers"]:
+                            with st.expander(
+                                f"View {len(insp['inward_callers'])} Direct Inward Callers"
+                            ):
+                                caller_rows = [
+                                    {
+                                        "Caller": c["source_label"],
+                                        "Relation": c["relation"],
+                                        "File": c["source_file"],
+                                    }
+                                    for c in insp["inward_callers"]
+                                ]
+                                st.dataframe(caller_rows, use_container_width=True)
+                    else:
+                        st.info(f"Symbol `{query_symbol}` not found in current knowledge graph.")
+
+                st.divider()
+                st.caption(
+                    "💡 *Pro-Tip: Open `graphify-out/graph.html` in your browser for the full interactive 2D physics network visualization, or run `python scripts/graph_inspector.py compare <symbol>` for the empirical Graph vs. Grep benchmark.*"
+                )
+            else:
+                st.info(
+                    "ℹ️ **Graphify Knowledge Graph Not Found**\n\n"
+                    "Generate the local AST knowledge graph using:\n"
+                    "```bash\n"
+                    "graphify extract . --code-only\n"
+                    "```"
+                )
+        except Exception as err:
+            st.warning(f"Graphify radar currently unavailable: {err}")

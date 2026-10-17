@@ -386,3 +386,139 @@ def restore_database(backup_source_path: Path, path: Path | None = None) -> None
             source_conn.backup(target_conn)
     finally:
         source_conn.close()
+
+
+def count_jobs(path: Path | None = None) -> int:
+    """Return total count of all jobs in the database."""
+    target_path = path or DB_PATH
+    if not target_path.exists():
+        return 0
+    with get_connection(target_path) as conn:
+        return conn.execute("SELECT COUNT(*) FROM jobs;").fetchone()[0]
+
+
+def seed_demo_data(path: Path | None = None, force_reset: bool = False) -> int:
+    """Seed fictional demonstration jobs from samples/fictional_requests.json.
+
+    Uses strictly fictional names and numbers to safeguard privacy.
+    Ensures that public cloud demonstrations on DigitalOcean App Platform
+    always present realistic workshop metrics and active job cards.
+
+    Returns the count of seeded jobs.
+    """
+    target_path = path or DB_PATH
+    init_db(target_path)
+
+    with get_connection(target_path) as conn:
+        if force_reset:
+            conn.execute("DELETE FROM jobs;")
+
+        existing_count = conn.execute("SELECT COUNT(*) FROM jobs;").fetchone()[0]
+        if existing_count > 0 and not force_reset:
+            return 0
+
+    sample_jobs = [
+        JobCard(
+            job_number="SS-2610-0001",
+            customer_name="Meena Kumari",
+            customer_phone="9876543210",
+            garment_type="Kurti",
+            garment_color="Blue",
+            garment_fabric="Cotton",
+            measurements={"length": 44.0, "chest": 38.0, "sleeves": 18.0, "waist": 34.0},
+            measurement_unit=MeasurementUnit.INCHES,
+            due_date=(date.today() + timedelta(days=2)).isoformat(),
+            due_date_confirmed=True,
+            payment=PaymentInfo.from_rupees(650.0, 300.0),
+            fitting_preference="Pichhli baar wali fitting rakhna",
+            notes="Side slits open, piping on neck",
+            raw_request="Bhaiya, blue kurti Sunday tak chahiye. Length 44, chest 38, sleeves 18. Pichhli baar wali fitting rakhna. 300 advance de diya.",
+            status=JobStatus.CONFIRMED,
+        ),
+        JobCard(
+            job_number="SS-2610-0002",
+            customer_name="सुनीता शर्मा",
+            customer_phone="9811223344",
+            garment_type="Blouse",
+            garment_color="Red",
+            garment_fabric="Banarasi Silk",
+            measurements={"length": 14.0, "chest": 34.0, "waist": 28.0, "sleeves": 10.0},
+            measurement_unit=MeasurementUnit.INCHES,
+            due_date=(date.today() + timedelta(days=5)).isoformat(),
+            due_date_confirmed=True,
+            payment=PaymentInfo.from_rupees(800.0, 500.0),
+            fitting_preference="Padded princess cut",
+            notes="Deep back round neck with latkan",
+            raw_request="लाल बनारसी सिल्क ब्लाउज सिलना है। लंबाई 14, चेस्ट 34, कमर 28, स्लीव्स 10 इंच। पीछे गहरा गोल गला और लटकन लगानी है। कुल 800 रुपये तय हुए हैं, 500 रुपये एडवांस दे दिए हैं।",
+            status=JobStatus.IN_PROGRESS,
+        ),
+        JobCard(
+            job_number="SS-2610-0003",
+            customer_name="Kavita Verma",
+            customer_phone="9823456789",
+            garment_type="Salwar Suit",
+            garment_color="Green",
+            garment_fabric="Cambric Cotton",
+            measurements={
+                "length": 42.0,
+                "chest": 36.0,
+                "waist": 32.0,
+                "hips": 40.0,
+                "shoulder": 14.0,
+            },
+            measurement_unit=MeasurementUnit.INCHES,
+            due_date=(date.today() + timedelta(days=1)).isoformat(),
+            due_date_confirmed=True,
+            payment=PaymentInfo.from_rupees(950.0, 200.0),
+            fitting_preference="Regular comfort fit",
+            notes="Right side zip pocket in salwar",
+            raw_request="Green cotton salwar suit banana hai. Kurti length 42, chest 36, waist 32, hip 40, shoulder 14. Salwar length 38 with right side zip pocket. 200 rs advance cash diya.",
+            status=JobStatus.READY,
+        ),
+        JobCard(
+            job_number="SS-2610-0004",
+            customer_name="Rajesh Malhotra",
+            customer_phone="9845012345",
+            garment_type="Gents Kurta",
+            garment_color="White",
+            garment_fabric="Linen",
+            measurements={
+                "length": 40.0,
+                "chest": 42.0,
+                "waist": 40.0,
+                "sleeves": 25.0,
+                "collar": 16.0,
+            },
+            measurement_unit=MeasurementUnit.INCHES,
+            due_date=(date.today() - timedelta(days=1)).isoformat(),
+            due_date_confirmed=True,
+            payment=PaymentInfo.from_rupees(1500.0, 1500.0),
+            fitting_preference="Classic straight kurta",
+            notes="Mandarin collar with concealed placket",
+            raw_request="White linen kurta pajama for wedding function. Kurta length 40, chest 42, waist 40, sleeve 25, neck 16. Mandarin collar with concealed placket. Total agreed 1500, paid full.",
+            status=JobStatus.COMPLETED,
+        ),
+        JobCard(
+            job_number="SS-2610-0005",
+            customer_name="पूजा गुप्ता",
+            customer_phone="9899887766",
+            garment_type="Lehenga",
+            garment_color="Pink",
+            garment_fabric="Georgette",
+            measurements={"length": 42.0, "chest": 36.0, "waist": 30.0},
+            measurement_unit=MeasurementUnit.INCHES,
+            due_date=(date.today() + timedelta(days=3)).isoformat(),
+            due_date_confirmed=True,
+            payment=PaymentInfo.from_rupees(2500.0, 1000.0),
+            fitting_preference="Heavy flare with cancan",
+            notes="Latkan on dori, double lining in lehenga skirt",
+            raw_request="पिंक जॉर्जेट लहंगा चोली तैयार करनी है। चोली लंबाई 15, चेस्ट 36, कमर 30। लहंगा लंबाई 42, घेर ज्यादा रखना और कैनकैन लगाना। 2500 कुल बात हुई थी, 1000 एडवांस जमा है।",
+            status=JobStatus.CONFIRMED,
+        ),
+    ]
+
+    count = 0
+    for job in sample_jobs:
+        create_job(job, path=target_path)
+        count += 1
+    return count

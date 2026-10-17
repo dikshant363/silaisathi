@@ -57,3 +57,11 @@ SilaiSathi utilizes open-source libraries and open-weight models to deliver a pr
 - **Repository / Upstream:** https://github.com/QwenLM/Qwen2.5
 - **License:** Apache License 2.0
 - **Usage:** Open-weight natural-language understanding for Hindi, Hinglish, and English tailoring requests.
+
+---
+
+### 8. Graphify (Graphify-Labs)
+- **Project:** Graphify
+- **Repository / Upstream:** https://github.com/Graphify-Labs/graphify
+- **License:** Apache License 2.0
+- **Usage:** Local-first AST knowledge graph extraction, community clustering, and architectural pre-change blast radius analysis.

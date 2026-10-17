@@ -1,0 +1,382 @@
+{
+  "communities": {
+    "0": [
+      "app",
+      "app_rationale_1",
+      "app_switch_view",
+      "basemodel",
+      "date",
+      "datetime",
+      "enum",
+      "httpx",
+      "math",
+      "pydantic",
+      "re",
+      "silaisathi_extraction",
+      "silaisathi_extraction_build_draft_from_parsed",
+      "silaisathi_extraction_check_ollama_health",
+      "silaisathi_extraction_extract_with_llm",
+      "silaisathi_extraction_generate_sample_draft",
+      "silaisathi_extraction_py_any",
+      "silaisathi_extraction_rationale_1",
+      "silaisathi_extraction_rationale_111",
+      "silaisathi_extraction_rationale_188",
+      "silaisathi_extraction_rationale_377",
+      "silaisathi_extraction_rationale_67",
+      "silaisathi_schemas",
+      "silaisathi_schemas_extracteddraft",
+      "silaisathi_schemas_flagseverity",
+      "silaisathi_schemas_measurementunit",
+      "silaisathi_schemas_rationale_1",
+      "silaisathi_schemas_rationale_142",
+      "silaisathi_schemas_rationale_37",
+      "silaisathi_schemas_reviewflag",
+      "silaisathi_validation",
+      "silaisathi_validation_check_prompt_injection",
+      "silaisathi_validation_normalize_indic_digits",
+      "silaisathi_validation_rationale_1",
+      "silaisathi_validation_rationale_110",
+      "silaisathi_validation_rationale_218",
+      "silaisathi_validation_rationale_68",
+      "silaisathi_validation_rationale_73",
+      "silaisathi_validation_rationale_87",
+      "silaisathi_validation_resolve_due_date",
+      "silaisathi_validation_validate_measurements_plausibility",
+      "silaisathi_validation_validate_request_text",
+      "streamlit",
+      "streamlit_components_v1",
+      "strenum",
+      "tests_test_silaisathi_rationale_211",
+      "tests_test_silaisathi_rationale_463",
+      "tests_test_silaisathi_rationale_479",
+      "tests_test_silaisathi_test_devanagari_indic_digit_normalization",
+      "tests_test_silaisathi_test_measurement_plausibility_bounds",
+      "tests_test_silaisathi_test_prompt_injection_flagged",
+      "typing"
+    ],
+    "1": [
+      "collections_abc",
+      "connection",
+      "contextlib",
+      "fixture",
+      "row",
+      "silaisathi_config_ensure_data_directories",
+      "silaisathi_config_rationale_93",
+      "silaisathi_database",
+      "silaisathi_database_backup_database",
+      "silaisathi_database_create_job",
+      "silaisathi_database_delete_job",
+      "silaisathi_database_get_connection",
+      "silaisathi_database_get_dashboard_stats",
+      "silaisathi_database_get_job_by_id",
+      "silaisathi_database_get_job_by_number",
+      "silaisathi_database_init_db",
+      "silaisathi_database_list_jobs",
+      "silaisathi_database_py_path",
+      "silaisathi_database_rationale_1",
+      "silaisathi_database_rationale_112",
+      "silaisathi_database_rationale_148",
+      "silaisathi_database_rationale_196",
+      "silaisathi_database_rationale_206",
+      "silaisathi_database_rationale_216",
+      "silaisathi_database_rationale_26",
+      "silaisathi_database_rationale_262",
+      "silaisathi_database_rationale_281",
+      "silaisathi_database_rationale_305",
+      "silaisathi_database_rationale_336",
+      "silaisathi_database_rationale_344",
+      "silaisathi_database_rationale_368",
+      "silaisathi_database_rationale_48",
+      "silaisathi_database_restore_database",
+      "silaisathi_database_row_to_job",
+      "silaisathi_database_update_job",
+      "silaisathi_database_update_job_status",
+      "sqlite3",
+      "tests_test_silaisathi_py_path",
+      "tests_test_silaisathi_rationale_235",
+      "tests_test_silaisathi_rationale_287",
+      "tests_test_silaisathi_rationale_339",
+      "tests_test_silaisathi_rationale_43",
+      "tests_test_silaisathi_rationale_527",
+      "tests_test_silaisathi_temp_db",
+      "tests_test_silaisathi_test_database_backup_and_restore",
+      "tests_test_silaisathi_test_job_deletion_and_update_timestamps",
+      "tests_test_silaisathi_test_job_persistence_crud",
+      "tests_test_silaisathi_test_job_search_and_filter"
+    ],
+    "2": [
+      "json",
+      "pytest",
+      "silaisathi_extraction_clean_model_output",
+      "silaisathi_extraction_rationale_86",
+      "silaisathi_orders_is_valid_status_transition",
+      "silaisathi_orders_rationale_39",
+      "tests_test_silaisathi",
+      "tests_test_silaisathi_rationale_1",
+      "tests_test_silaisathi_rationale_102",
+      "tests_test_silaisathi_rationale_113",
+      "tests_test_silaisathi_rationale_125",
+      "tests_test_silaisathi_rationale_138",
+      "tests_test_silaisathi_rationale_154",
+      "tests_test_silaisathi_rationale_162",
+      "tests_test_silaisathi_rationale_203",
+      "tests_test_silaisathi_rationale_375",
+      "tests_test_silaisathi_rationale_444",
+      "tests_test_silaisathi_rationale_552",
+      "tests_test_silaisathi_rationale_560",
+      "tests_test_silaisathi_rationale_583",
+      "tests_test_silaisathi_rationale_591",
+      "tests_test_silaisathi_rationale_88",
+      "tests_test_silaisathi_test_app_startup_import",
+      "tests_test_silaisathi_test_build_draft_realistic_hinglish_sample",
+      "tests_test_silaisathi_test_clean_model_output_with_markdown_fence",
+      "tests_test_silaisathi_test_clean_model_output_with_thinking_tags",
+      "tests_test_silaisathi_test_config_popular_measurements_defined",
+      "tests_test_silaisathi_test_create_new_job_button_navigation",
+      "tests_test_silaisathi_test_forbidden_status_transitions",
+      "tests_test_silaisathi_test_offline_sample_generator",
+      "tests_test_silaisathi_test_order_lifecycle_transitions",
+      "tests_test_silaisathi_test_payment_negative_amounts_rejected",
+      "tests_test_silaisathi_test_request_text_length_limit",
+      "tests_test_silaisathi_test_resolve_empty_due_date",
+      "tests_test_silaisathi_test_resolve_kal_and_parso",
+      "tests_test_silaisathi_test_resolve_relative_weekday_requires_confirmation"
+    ],
+    "3": [
+      "field_validator",
+      "model_validator",
+      "silaisathi_schemas_jobcard_validate_measurements",
+      "silaisathi_schemas_paymentinfo",
+      "silaisathi_schemas_paymentinfo_advance_paid_rs",
+      "silaisathi_schemas_paymentinfo_balance_due_rs",
+      "silaisathi_schemas_paymentinfo_calculate_balance_and_flags",
+      "silaisathi_schemas_paymentinfo_display_balance",
+      "silaisathi_schemas_paymentinfo_from_rupees",
+      "silaisathi_schemas_paymentinfo_total_price_rs",
+      "silaisathi_schemas_paymentinfo_validate_advance",
+      "silaisathi_schemas_paymentinfo_validate_total",
+      "silaisathi_schemas_rationale_103",
+      "silaisathi_schemas_rationale_45",
+      "silaisathi_validation_calculate_payment_info",
+      "silaisathi_validation_rationale_266",
+      "tests_test_silaisathi_rationale_386",
+      "tests_test_silaisathi_rationale_493",
+      "tests_test_silaisathi_rationale_55",
+      "tests_test_silaisathi_rationale_571",
+      "tests_test_silaisathi_rationale_68",
+      "tests_test_silaisathi_rationale_81",
+      "tests_test_silaisathi_test_csv_export_content_and_safety",
+      "tests_test_silaisathi_test_duplicate_detection_permutations",
+      "tests_test_silaisathi_test_payment_info_excess_advance",
+      "tests_test_silaisathi_test_payment_info_from_rupees_keyword_aliases",
+      "tests_test_silaisathi_test_payment_info_full_values",
+      "tests_test_silaisathi_test_payment_info_unknown_total"
+    ],
+    "4": [
+      "html",
+      "silaisathi_orders_check_potential_duplicate",
+      "silaisathi_orders_generate_job_number",
+      "silaisathi_orders_py_path",
+      "silaisathi_orders_rationale_26",
+      "silaisathi_orders_rationale_52",
+      "silaisathi_printing",
+      "silaisathi_printing_generate_printable_html",
+      "silaisathi_printing_rationale_1",
+      "silaisathi_printing_rationale_24",
+      "silaisathi_schemas_jobcard",
+      "silaisathi_schemas_jobcard_advance_paid_rs",
+      "silaisathi_schemas_jobcard_balance_due_rs",
+      "silaisathi_schemas_jobcard_total_price_rs",
+      "silaisathi_schemas_jobstatus",
+      "silaisathi_schemas_rationale_172",
+      "socket",
+      "sys",
+      "tests_test_silaisathi_rationale_411",
+      "tests_test_silaisathi_test_printable_html_truthful_labeling",
+      "tests_verify_offline_network",
+      "tests_verify_offline_network_isolated_connect",
+      "tests_verify_offline_network_rationale_1",
+      "tests_verify_offline_network_run_offline_test",
+      "tests_verify_runtime",
+      "tests_verify_runtime_rationale_1",
+      "tests_verify_runtime_run_checks"
+    ],
+    "5": [
+      "csv",
+      "io",
+      "os",
+      "pathlib",
+      "silaisathi_config",
+      "silaisathi_config_rationale_1",
+      "silaisathi_init",
+      "silaisathi_init_rationale_1",
+      "silaisathi_orders",
+      "silaisathi_orders_export_jobs_to_csv",
+      "silaisathi_orders_rationale_1",
+      "silaisathi_orders_rationale_84",
+      "silaisathi_validation_py_any",
+      "silaisathi_validation_rationale_92",
+      "silaisathi_validation_sanitize_for_csv",
+      "tests_test_silaisathi_rationale_221",
+      "tests_test_silaisathi_test_csv_formula_injection_sanitization"
+    ],
+    "6": [
+      "pkg_silaisathi"
+    ]
+  },
+  "cohesion": {
+    "0": 0.07993966817496229,
+    "1": 0.08333333333333333,
+    "2": 0.06507936507936508,
+    "3": 0.09523809523809523,
+    "4": 0.1282051282051282,
+    "5": 0.13970588235294118,
+    "6": 1.0
+  },
+  "gods": [
+    {
+      "id": "silaisathi_schemas_paymentinfo",
+      "label": "PaymentInfo",
+      "degree": 33
+    },
+    {
+      "id": "silaisathi_schemas_jobcard",
+      "label": "JobCard",
+      "degree": 32
+    },
+    {
+      "id": "silaisathi_schemas_jobstatus",
+      "label": "JobStatus",
+      "degree": 19
+    },
+    {
+      "id": "silaisathi_schemas_measurementunit",
+      "label": "MeasurementUnit",
+      "degree": 17
+    },
+    {
+      "id": "silaisathi_database_get_connection",
+      "label": "get_connection()",
+      "degree": 16
+    },
+    {
+      "id": "silaisathi_extraction_extract_with_llm",
+      "label": "extract_with_llm()",
+      "degree": 15
+    },
+    {
+      "id": "silaisathi_extraction_build_draft_from_parsed",
+      "label": "build_draft_from_parsed()",
+      "degree": 14
+    },
+    {
+      "id": "tests_test_silaisathi_test_job_persistence_crud",
+      "label": "test_job_persistence_crud()",
+      "degree": 14
+    },
+    {
+      "id": "tests_verify_offline_network_run_offline_test",
+      "label": "run_offline_test()",
+      "degree": 14
+    },
+    {
+      "id": "silaisathi_database_create_job",
+      "label": "create_job()",
+      "degree": 13
+    }
+  ],
+  "surprises": [
+    {
+      "source": "test_job_persistence_crud()",
+      "target": "MeasurementUnit",
+      "source_files": [
+        "tests/test_silaisathi.py",
+        "silaisathi/schemas.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "test_printable_html_truthful_labeling()",
+      "target": "MeasurementUnit",
+      "source_files": [
+        "tests/test_silaisathi.py",
+        "silaisathi/schemas.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "run_offline_test()",
+      "target": "MeasurementUnit",
+      "source_files": [
+        "tests/verify_offline_network.py",
+        "silaisathi/schemas.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "run_checks()",
+      "target": "MeasurementUnit",
+      "source_files": [
+        "tests/verify_runtime.py",
+        "silaisathi/schemas.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "test_database_backup_and_restore()",
+      "target": "PaymentInfo",
+      "source_files": [
+        "tests/test_silaisathi.py",
+        "silaisathi/schemas.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `PaymentInfo` connect `Community 3` to `Community 0`, `Community 1`, `Community 2`, `Community 4`?",
+      "why": "High betweenness centrality (0.147) - this node is a cross-community bridge."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 15 inferred relationships involving `PaymentInfo` (e.g. with `calculate_payment_info()` and `test_csv_export_content_and_safety()`) actually correct?",
+      "why": "`PaymentInfo` has 15 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `silaisathi` to the rest of the system?",
+      "why": "1 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 0` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.07993966817496229 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `JobCard` connect `Community 4` to `Community 0`, `Community 1`, `Community 2`, `Community 3`, `Community 5`?",
+      "why": "High betweenness centrality (0.114) - this node is a cross-community bridge."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 8 inferred relationships involving `JobCard` (e.g. with `create_job()` and `get_job_by_id()`) actually correct?",
+      "why": "`JobCard` has 8 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 1` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.08333333333333333 - nodes in this community are weakly interconnected."
+    }
+  ]
+}

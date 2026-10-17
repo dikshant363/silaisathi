@@ -601,3 +601,30 @@ def test_create_new_job_button_navigation():
 
     assert at.session_state["active_view"] == "New Job (AI Assistant)"
     assert at.sidebar.radio[0].value == "New Job (AI Assistant)"
+
+
+def test_seed_demo_data_and_reset(tmp_path):
+    """Verify fictional demo data can be seeded and reset cleanly without leaking data."""
+    test_db = tmp_path / "test_demo_seed.db"
+    assert database.count_jobs(test_db) == 0
+
+    # Initial seeding
+    seeded = database.seed_demo_data(test_db)
+    assert seeded == 5
+    assert database.count_jobs(test_db) == 5
+
+    # Secondary call without force_reset does not duplicate
+    reseeded = database.seed_demo_data(test_db, force_reset=False)
+    assert reseeded == 0
+    assert database.count_jobs(test_db) == 5
+
+    # Force reset clears and reseeds exactly 5 jobs
+    reset_count = database.seed_demo_data(test_db, force_reset=True)
+    assert reset_count == 5
+    assert database.count_jobs(test_db) == 5
+
+    # Verify all seeded jobs contain fictional markers
+    jobs = database.list_jobs(path=test_db)
+    customer_names = [j.customer_name for j in jobs]
+    assert "Meena Kumari" in customer_names
+    assert "Rajesh Malhotra" in customer_names

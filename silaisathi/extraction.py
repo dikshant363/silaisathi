@@ -14,7 +14,15 @@ from typing import Any
 
 import httpx
 
-from silaisathi.config import DEFAULT_MODEL, INFERENCE_TIMEOUT_SECONDS, OLLAMA_HOST
+from silaisathi.config import (
+    DEFAULT_MODEL,
+    DEFAULT_PROVIDER,
+    GEMINI_API_KEY,
+    GEMMA_API_BASE,
+    GEMMA_DEFAULT_MODEL,
+    INFERENCE_TIMEOUT_SECONDS,
+    OLLAMA_HOST,
+)
 from silaisathi.schemas import (
     ExtractedDraft,
     FlagSeverity,
@@ -82,6 +90,21 @@ def check_ollama_health() -> tuple[bool, str, list[str]]:
         return False, f"Ollama health check error: {str(exc)}", []
 
 
+def check_gemma_health() -> tuple[bool, str, list[str]]:
+    """Check availability of the optional Gemma 4 provider via Google Gemini API."""
+    if not GEMINI_API_KEY:
+        return (
+            False,
+            "GEMINI_API_KEY environment variable is not configured. Gemma 4 hosted provider is optional and unconfigured.",
+            [],
+        )
+    return (
+        True,
+        "Gemini API key configured. Ready for Gemma 4 extraction.",
+        [GEMMA_DEFAULT_MODEL, "gemma-4-31b-it", "gemma-2-9b-it"],
+    )
+
+
 def clean_model_output(raw_text: str) -> str:
     """Clean model response by removing thinking tags and markdown code blocks."""
     # Remove Qwen/DeepSeek thinking tags <think>...</think>
@@ -102,78 +125,276 @@ def clean_model_output(raw_text: str) -> str:
     return text
 
 
+class BaseExtractionProvider:
+    """Base interface for SilaiSathi extraction providers."""
+
+    provider_name: str = "base"
+
+    def is_available(self) -> tuple[bool, str, list[str]]:
+        raise NotImplementedError
+
+    def extract(
+        self,
+        customer_request: str,
+        model_name: str | None = None,
+        manual_customer_name: str | None = None,
+        manual_customer_phone: str | None = None,
+    ) -> ExtractedDraft:
+        raise NotImplementedError
+
+
+class OllamaProvider(BaseExtractionProvider):
+    """Local-first offline Ollama inference provider (Loopback 127.0.0.1)."""
+
+    provider_name: str = "ollama"
+
+    def is_available(self) -> tuple[bool, str, list[str]]:
+        return check_ollama_health()
+
+    def extract(
+        self,
+        customer_request: str,
+        model_name: str | None = None,
+        manual_customer_name: str | None = None,
+        manual_customer_phone: str | None = None,
+    ) -> ExtractedDraft:
+        valid, msg = validate_request_text(customer_request)
+        if not valid:
+            raise ValueError(msg)
+
+        prompt_injection_flag = check_prompt_injection(customer_request)
+        normalized_request = normalize_indic_digits(customer_request)
+        target_model = model_name or DEFAULT_MODEL
+
+        # ChatML prefill format specifically bypasses thinking delays on reasoning models like Qwen 3.5
+        prompt = (
+            f"<|im_start|>system\n{SYSTEM_EXTRACTION_PROMPT}<|im_end|>\n"
+            f'<|im_start|>user\nCustomer Request:\n"""{normalized_request}"""\n\nOutput JSON only:<|im_end|>\n'
+            f"<|im_start|>assistant\n<think>\nDone.\n</think>\n{{"
+        )
+
+        payload = {
+            "model": target_model,
+            "prompt": prompt,
+            "raw": True,
+            "stream": False,
+            "options": {
+                "temperature": 0.1,  # Low temperature for deterministic factual extraction
+                "num_predict": 1024,
+            },
+        }
+
+        try:
+            response = httpx.post(
+                f"{OLLAMA_HOST}/api/generate",
+                json=payload,
+                timeout=float(INFERENCE_TIMEOUT_SECONDS),
+            )
+            response.raise_for_status()
+            res_data = response.json()
+            raw_output = res_data.get("response", "")
+            if not raw_output.strip().startswith("{"):
+                raw_output = "{" + raw_output
+        except httpx.ConnectError as exc:
+            raise ConnectionError(
+                f"Ollama server is not running or unreachable at {OLLAMA_HOST}. "
+                "Please start Ollama with 'ollama serve' in your terminal."
+            ) from exc
+        except httpx.TimeoutException as exc:
+            raise TimeoutError(
+                f"Local inference timed out after {INFERENCE_TIMEOUT_SECONDS} seconds. "
+                "Consider using a smaller model like qwen3.5:4b or increasing the timeout."
+            ) from exc
+        except Exception as exc:
+            raise RuntimeError(f"Error communicating with local AI model: {str(exc)}") from exc
+
+        cleaned_json_text = clean_model_output(raw_output)
+
+        try:
+            parsed: dict[str, Any] = json.loads(cleaned_json_text)
+        except json.JSONDecodeError as exc:
+            raise ValueError(
+                f"Model produced invalid JSON output. Response was: {raw_output[:200]}..."
+            ) from exc
+
+        return build_draft_from_parsed(
+            parsed=parsed,
+            raw_request=customer_request,
+            model_name=target_model,
+            manual_name=manual_customer_name,
+            manual_phone=manual_customer_phone,
+            injection_detected=prompt_injection_flag,
+        )
+
+
+class GemmaProvider(BaseExtractionProvider):
+    """Optional hosted Google Gemini API provider running Gemma 4 open weights."""
+
+    provider_name: str = "gemma"
+
+    def is_available(self) -> tuple[bool, str, list[str]]:
+        return check_gemma_health()
+
+    def extract(
+        self,
+        customer_request: str,
+        model_name: str | None = None,
+        manual_customer_name: str | None = None,
+        manual_customer_phone: str | None = None,
+    ) -> ExtractedDraft:
+        valid, msg = validate_request_text(customer_request)
+        if not valid:
+            raise ValueError(msg)
+
+        if not GEMINI_API_KEY:
+            raise ValueError(
+                "Gemini API key is not configured. "
+                "Please set GEMINI_API_KEY or GOOGLE_API_KEY in your environment to use the Gemma 4 provider."
+            )
+
+        prompt_injection_flag = check_prompt_injection(customer_request)
+        normalized_request = normalize_indic_digits(customer_request)
+        target_model = model_name or GEMMA_DEFAULT_MODEL
+        clean_model_id = target_model.replace("models/", "").strip()
+
+        url = f"{GEMMA_API_BASE}/models/{clean_model_id}:generateContent"
+        headers = {
+            "Content-Type": "application/json",
+            "x-goog-api-key": GEMINI_API_KEY,
+        }
+        payload = {
+            "systemInstruction": {
+                "parts": [{"text": SYSTEM_EXTRACTION_PROMPT}],
+            },
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [
+                        {
+                            "text": f'Customer Request:\n"""{normalized_request}"""\n\nOutput JSON only:'
+                        }
+                    ],
+                }
+            ],
+            "generationConfig": {
+                "temperature": 0.1,
+                "maxOutputTokens": 1024,
+                "responseMimeType": "application/json",
+            },
+        }
+
+        try:
+            response = httpx.post(
+                url,
+                headers=headers,
+                json=payload,
+                timeout=float(INFERENCE_TIMEOUT_SECONDS),
+            )
+            if response.status_code == 400:
+                raise ValueError(f"Gemini API Bad Request (HTTP 400): {response.text}")
+            if response.status_code == 403:
+                raise PermissionError(
+                    "Gemini API authentication failed (HTTP 403). Check your GEMINI_API_KEY."
+                )
+            if response.status_code == 429:
+                raise RuntimeError(
+                    "Gemini API rate limit exceeded (HTTP 429). Please try again shortly."
+                )
+            response.raise_for_status()
+
+            res_data = response.json()
+            candidates = res_data.get("candidates", [])
+            if not candidates:
+                raise ValueError("Gemma model returned empty candidate response.")
+            parts = candidates[0].get("content", {}).get("parts", [])
+            if not parts:
+                raise ValueError("Gemma model returned empty content parts.")
+            raw_output = parts[0].get("text", "")
+        except httpx.ConnectError as exc:
+            raise ConnectionError(
+                f"Could not connect to Google Gemini API at {GEMMA_API_BASE}. Check internet connectivity."
+            ) from exc
+        except httpx.TimeoutException as exc:
+            raise TimeoutError(
+                f"Gemma inference timed out after {INFERENCE_TIMEOUT_SECONDS} seconds."
+            ) from exc
+        except (ValueError, PermissionError, RuntimeError):
+            raise
+        except Exception as exc:
+            raise RuntimeError(f"Error communicating with Gemma 4 model: {str(exc)}") from exc
+
+        cleaned_json_text = clean_model_output(raw_output)
+
+        try:
+            parsed: dict[str, Any] = json.loads(cleaned_json_text)
+        except json.JSONDecodeError as exc:
+            raise ValueError(
+                f"Gemma model produced invalid JSON output. Response was: {raw_output[:200]}..."
+            ) from exc
+
+        draft = build_draft_from_parsed(
+            parsed=parsed,
+            raw_request=customer_request,
+            model_name=target_model,
+            manual_name=manual_customer_name,
+            manual_phone=manual_customer_phone,
+            injection_detected=prompt_injection_flag,
+        )
+
+        draft.review_flags.append(
+            ReviewFlag(
+                field="provider",
+                severity=FlagSeverity.INFO,
+                message=f"Extracted using optional hosted model '{target_model}' via Google Gemini API.",
+            )
+        )
+        return draft
+
+
+_OLLAMA_PROVIDER = OllamaProvider()
+_GEMMA_PROVIDER = GemmaProvider()
+
+
+def get_provider(name: str = "ollama") -> BaseExtractionProvider:
+    """Retrieve an extraction provider instance by name ('ollama' or 'gemma')."""
+    normalized = (name or "ollama").strip().lower()
+    if normalized in ("gemma", "gemma-api", "gemini"):
+        return _GEMMA_PROVIDER
+    return _OLLAMA_PROVIDER
+
+
 def extract_with_llm(
     customer_request: str,
-    model_name: str = DEFAULT_MODEL,
+    model_name: str | None = None,
     manual_customer_name: str | None = None,
     manual_customer_phone: str | None = None,
+    provider: str | None = None,
 ) -> ExtractedDraft:
-    """Send customer request to local Ollama model and return structured ExtractedDraft."""
-    valid, msg = validate_request_text(customer_request)
-    if not valid:
-        raise ValueError(msg)
+    """Send customer request to configured AI provider and return structured ExtractedDraft.
 
-    prompt_injection_flag = check_prompt_injection(customer_request)
-    normalized_request = normalize_indic_digits(customer_request)
+    Defaults strictly to local Ollama (127.0.0.1 loopback) with Qwen 3.5 4B.
+    """
+    selected_provider_name = provider
+    if selected_provider_name is None:
+        if model_name and (
+            model_name.startswith("gemma-4")
+            or model_name.startswith("gemma-2")
+            or "gemma-cloud" in model_name
+        ):
+            selected_provider_name = "gemma"
+        else:
+            selected_provider_name = DEFAULT_PROVIDER
 
-    # ChatML prefill format specifically bypasses thinking delays on reasoning models like Qwen 3.5
-    prompt = (
-        f"<|im_start|>system\n{SYSTEM_EXTRACTION_PROMPT}<|im_end|>\n"
-        f'<|im_start|>user\nCustomer Request:\n"""{normalized_request}"""\n\nOutput JSON only:<|im_end|>\n'
-        f"<|im_start|>assistant\n<think>\nDone.\n</think>\n{{"
+    provider_instance = get_provider(selected_provider_name)
+    target_model = model_name or (
+        DEFAULT_MODEL if provider_instance.provider_name == "ollama" else GEMMA_DEFAULT_MODEL
     )
 
-    payload = {
-        "model": model_name,
-        "prompt": prompt,
-        "raw": True,
-        "stream": False,
-        "options": {
-            "temperature": 0.1,  # Low temperature for deterministic factual extraction
-            "num_predict": 1024,
-        },
-    }
-
-    try:
-        response = httpx.post(
-            f"{OLLAMA_HOST}/api/generate",
-            json=payload,
-            timeout=float(INFERENCE_TIMEOUT_SECONDS),
-        )
-        response.raise_for_status()
-        res_data = response.json()
-        raw_output = res_data.get("response", "")
-        if not raw_output.strip().startswith("{"):
-            raw_output = "{" + raw_output
-    except httpx.ConnectError as exc:
-        raise ConnectionError(
-            f"Ollama server is not running or unreachable at {OLLAMA_HOST}. "
-            "Please start Ollama with 'ollama serve' in your terminal."
-        ) from exc
-    except httpx.TimeoutException as exc:
-        raise TimeoutError(
-            f"Local inference timed out after {INFERENCE_TIMEOUT_SECONDS} seconds. "
-            "Consider using a smaller model like qwen3.5:4b or increasing the timeout."
-        ) from exc
-    except Exception as exc:
-        raise RuntimeError(f"Error communicating with local AI model: {str(exc)}") from exc
-
-    cleaned_json_text = clean_model_output(raw_output)
-
-    try:
-        parsed: dict[str, Any] = json.loads(cleaned_json_text)
-    except json.JSONDecodeError as exc:
-        raise ValueError(
-            f"Model produced invalid JSON output. Response was: {raw_output[:200]}..."
-        ) from exc
-
-    return build_draft_from_parsed(
-        parsed=parsed,
-        raw_request=customer_request,
-        model_name=model_name,
-        manual_name=manual_customer_name,
-        manual_phone=manual_customer_phone,
-        injection_detected=prompt_injection_flag,
+    return provider_instance.extract(
+        customer_request=customer_request,
+        model_name=target_model,
+        manual_customer_name=manual_customer_name,
+        manual_customer_phone=manual_customer_phone,
     )
 
 

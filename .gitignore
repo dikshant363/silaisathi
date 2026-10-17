@@ -33,3 +33,6 @@ Thumbs.db
 # Sensitive local config
 .env
 .env.local
+
+# Graphify local cache
+graphify-out/cache/

@@ -1,0 +1,43 @@
+# Git and Version Control
+.git/
+.gitignore
+.github/
+
+# Virtual Environments
+.venv/
+env/
+venv/
+ENV/
+
+# Python byte code and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local databases and backups (protect all local customer data)
+data/
+backups/
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets and local environment files
+.env
+.env.*
+.streamlit/secrets.toml
+
+# OS and Editor metadata
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Development artifacts and agent logs
+.agents/
+graphify-out/
+tests/
+*.log

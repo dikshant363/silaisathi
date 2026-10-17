@@ -116,16 +116,28 @@ source .venv/bin/activate
 pip install -e .
 ```
 
-### Step 3: Install and Run Ollama
+### Step 3: Configure AI Model Inference
+
+#### Option A: Local Ollama (Recommended — 100% Offline & Private)
 1. Download Ollama from [ollama.com](https://ollama.com) (or via Homebrew: `brew install ollama`).
-2. Pull the lightweight Qwen 3.5 4B model:
+2. Pull the lightweight Qwen 3.5 4B model (or local Gemma 4):
    ```bash
    ollama pull qwen3.5:4b
+   # or: ollama pull gemma4:e2b
    ```
 3. Start the Ollama background daemon:
    ```bash
    ollama serve
    ```
+
+#### Option B: Gemma 4 via Google Gemini API (Optional Hosted Open Weights)
+For environments where local GPU acceleration is not available or to experiment with Google's latest open-weight models:
+1. Obtain a free API key from [Google AI Studio](https://aistudio.google.com).
+2. Set your environment variable:
+   ```bash
+   export GEMINI_API_KEY="your-api-key-here"
+   ```
+3. SilaiSathi will automatically discover the key and enable hosted Gemma 4 (`gemma-4-26b-a4b-it` / `gemma-4-31b-it`) in the sidebar provider selector with clear data disclosure.
 
 ### Step 4: Launch SilaiSathi Workstation
 ```bash
@@ -165,8 +177,26 @@ The project includes an automated test suite verifying financial calculations, d
 .venv/bin/ruff format --check .
 ```
 
-All 29 unit tests execute in under 0.45s:
+All 47 unit tests execute in under 0.50s:
 ```
+tests/test_gemma_provider.py::test_provider_registry_resolution PASSED
+tests/test_gemma_provider.py::test_gemma_health_unconfigured PASSED
+tests/test_gemma_provider.py::test_gemma_health_configured PASSED
+tests/test_gemma_provider.py::test_gemma_extract_missing_api_key_raises PASSED
+tests/test_gemma_provider.py::test_gemma_extract_success PASSED
+tests/test_gemma_provider.py::test_gemma_auto_routing_by_model_name PASSED
+tests/test_gemma_provider.py::test_gemma_error_handling PASSED
+tests/test_gemma_provider.py::test_gemma_prompt_injection_sanitization PASSED
+tests/test_graph_inspector.py::test_load_graph_valid PASSED
+tests/test_graph_inspector.py::test_load_graph_missing PASSED
+tests/test_graph_inspector.py::test_check_freshness PASSED
+tests/test_graph_inspector.py::test_get_graph_summary PASSED
+tests/test_graph_inspector.py::test_find_nodes_by_symbol PASSED
+tests/test_graph_inspector.py::test_inspect_symbol_known PASSED
+tests/test_graph_inspector.py::test_inspect_symbol_unknown PASSED
+tests/test_graph_inspector.py::test_compute_blast_radius PASSED
+tests/test_graph_inspector.py::test_compare_with_grep PASSED
+tests/test_graph_inspector.py::test_format_cli_output PASSED
 tests/test_silaisathi.py::test_payment_info_full_values PASSED
 tests/test_silaisathi.py::test_payment_info_unknown_total PASSED
 tests/test_silaisathi.py::test_payment_info_excess_advance PASSED
@@ -200,7 +230,67 @@ tests/test_silaisathi.py::test_create_new_job_button_navigation PASSED
 
 ---
 
-## 8. Privacy & Security Model
+## 8. Graphify Architectural Knowledge Graph & Agent Radar
+
+SilaiSathi integrates [Graphify](https://github.com/Graphify-Labs/graphify) to provide offline AST code intelligence, community clustering, and pre-mutation impact analysis ("blast radius") for developers and autonomous coding agents.
+
+### Why Graphify in SilaiSathi?
+SilaiSathi enforces strict architectural invariants:
+- Language model outputs must never compute financial balances.
+- Integer paise arithmetic is quarantined in `PaymentInfo`.
+- Tailoring measurement keys in `POPULAR_MEASUREMENTS` and `COMMON_MEASUREMENTS` link configurations, validation schemas, UI inputs, and printable workshop slips.
+
+Modifying a core abstraction without understanding its upstream callers risks subtle runtime regressions. Ordinary flat text search (`grep`) returns noisy string occurrences without caller hierarchy or transitive reach. Graphify parses the Python AST locally (with zero remote API tokens or telemetry) and exposes a directed 317-node, 681-edge knowledge graph.
+
+### 1. Developer CLI: `scripts/graph_inspector.py`
+Run the developer inspection tool directly:
+```bash
+# High-level architecture summary & top abstractions (God Nodes)
+python scripts/graph_inspector.py summary
+
+# Inspect exact callers and outgoing dependencies of any symbol
+python scripts/graph_inspector.py inspect PaymentInfo
+
+# Calculate transitive blast radius (ripple effect) before changing code
+python scripts/graph_inspector.py blast-radius JobCard
+
+# Run head-to-head empirical comparison: Naive Grep vs. Graphify
+python scripts/graph_inspector.py compare PaymentInfo
+
+# Verify whether the local graph is synchronized with current git commit
+python scripts/graph_inspector.py freshness
+```
+
+### 2. Empirical Benchmark: Naive Grep vs. Graphify AST
+| Metric | Naive Grep | Graphify AST Graph |
+| :--- | :--- | :--- |
+| **Total Occurrences / Symbols** | 51 text lines | 1 resolved AST node |
+| **Transitively Impacted Files** | 8 files (blind) | 10 distinct files mapped |
+| **Comment / Docstring False Matches** | 2 lines | 0 (AST filtered) |
+| **Direct Callers Identified** | 0 (flat text) | 24 callers resolved |
+| **Transitive Blast Radius** | None (unknown) | 51 upstream symbols |
+
+### 3. In-App Interactive Architecture Radar
+Open **Data & Privacy ➔ 🧭 Architecture & Graphify Radar** in the Streamlit workstation to view:
+- Live graph metrics (nodes, edges, communities, git commit freshness).
+- Top architectural hubs table (`JobCard`, `PaymentInfo`, `JobStatus`).
+- Interactive symbol inspector with direct caller drill-down and blast radius metrics.
+
+### 4. Extracting and Updating the Graph
+```bash
+# Full offline AST extraction (zero API cost, respects .gitignore)
+graphify extract . --code-only
+
+# Rerun clustering & update visualization
+graphify cluster-only . --no-label
+
+# Incremental update after modifying code
+graphify update .
+```
+
+---
+
+## 9. Privacy & Security Model
 
 - **No Remote Telemetry:** SilaiSathi contains zero Google Analytics, Segment, Sentry, or remote tracking beacons.
 - **No External CDNs:** All CSS styling and layout scripts are bundled locally. No Google Fonts or cloud CDNs are queried at runtime.
@@ -210,18 +300,30 @@ tests/test_silaisathi.py::test_create_new_job_button_navigation PASSED
 
 ---
 
-## 9. Project Structure
+## 10. Project Structure
 
 ```
 silaisathi/
+├── .agents/
+│   ├── rules/
+│   │   └── graphify.md            # Antigravity agent rules for Graphify queries
+│   └── workflows/
+│       └── graphify.md            # Agent workflow definition for /graphify
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                 # Automated GitHub Actions test workflow
 ├── data/                          # Local data directory (git-ignored)
 │   ├── silaisathi.db              # SQLite transactional database
 │   └── backups/                   # Timestamped SQLite database snapshots
+├── graphify-out/                  # Offline knowledge graph artifacts
+│   ├── graph.json                 # 317 nodes, 681 edges AST graph
+│   ├── graph.html                 # Interactive 2D physics network visualization
+│   ├── GRAPH_TREE.html            # D3 v7 collapsible hierarchy visualization
+│   └── GRAPH_REPORT.md            # Community analysis and architectural report
 ├── samples/
 │   └── fictional_requests.json    # Anonymized Hindi/Hinglish/English test cases
+├── scripts/
+│   └── graph_inspector.py         # Developer CLI: Blast radius & Graph vs. Grep radar
 ├── silaisathi/
 │   ├── __init__.py                # Package declaration
 │   ├── config.py                  # Loopback hosts, paths, and garment metadata
@@ -232,7 +334,10 @@ silaisathi/
 │   ├── schemas.py                 # Pydantic schemas & integer paise arithmetic
 │   └── validation.py              # Prompt injection, formula escaping & date math
 ├── tests/
-│   └── test_silaisathi.py         # Complete pytest automated test suite
+│   ├── test_graph_inspector.py    # Automated test suite for Graphify integration
+│   ├── test_silaisathi.py         # Complete pytest automated test suite
+│   ├── verify_offline_network.py  # Socket-level network isolation guard test
+│   └── verify_runtime.py          # Real local model live verification
 ├── app.py                         # Streamlit desktop workstation UI
 ├── LICENSE                        # MIT License
 ├── pyproject.toml                 # Project configuration & dependencies
@@ -242,6 +347,6 @@ silaisathi/
 
 ---
 
-## 10. License
+## 11. License
 
 SilaiSathi is open-source software licensed under the **[MIT License](LICENSE)**.

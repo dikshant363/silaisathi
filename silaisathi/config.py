@@ -27,6 +27,27 @@ DEFAULT_MODEL = os.getenv("SILAISATHI_MODEL", "qwen3.5:4b")
 FALLBACK_MODELS = ["qwen3.5:4b", "gemma4:e2b", "llama3.2:3b", "mistral:7b"]
 INFERENCE_TIMEOUT_SECONDS = int(os.getenv("SILAISATHI_TIMEOUT", "60"))
 
+# Deployment & Environment Settings
+IS_CLOUD_DEPLOYMENT = os.getenv("SILAISATHI_CLOUD_DEPLOYMENT", "0").lower() in (
+    "1",
+    "true",
+    "yes",
+)
+DEMO_MODE = os.getenv("SILAISATHI_DEMO_MODE", "1").lower() in ("1", "true", "yes")
+
+# Provider Settings
+DEFAULT_PROVIDER = os.getenv(
+    "SILAISATHI_AI_PROVIDER",
+    "gemma"
+    if (IS_CLOUD_DEPLOYMENT and (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")))
+    else "ollama",
+)
+GEMMA_DEFAULT_MODEL = os.getenv("SILAISATHI_GEMMA_MODEL", "gemma-4-26b-a4b-it")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+GEMMA_API_BASE = os.getenv(
+    "SILAISATHI_GEMMA_API_BASE", "https://generativelanguage.googleapis.com/v1beta"
+)
+
 # Security Limits
 MAX_INPUT_LENGTH = 2000  # Characters for customer request text
 MAX_CUSTOMER_NAME_LENGTH = 100

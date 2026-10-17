@@ -1,0 +1,30 @@
+name: silaisathi
+region: blr
+
+services:
+  - name: web
+    github:
+      repo: dikshant363/silaisathi
+      branch: main
+      deploy_on_push: true
+    dockerfilePath: Dockerfile
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    health_check:
+      http_path: /_stcore/health
+      initial_delay_seconds: 15
+      period_seconds: 15
+      timeout_seconds: 5
+      failure_threshold: 3
+    envs:
+      - key: SILAISATHI_CLOUD_DEPLOYMENT
+        value: "1"
+        scope: RUN_TIME
+      - key: SILAISATHI_DEMO_MODE
+        value: "1"
+        scope: RUN_TIME
+      - key: GEMINI_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: "ENTER_KEY_IN_DIGITALOCEAN_DASHBOARD"
