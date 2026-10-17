@@ -312,11 +312,13 @@ silaisathi/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                 # Automated GitHub Actions test workflow
+├── api/
+│   └── index.py                   # Vercel Serverless Function entrypoint & showcase UI
 ├── data/                          # Local data directory (git-ignored)
 │   ├── silaisathi.db              # SQLite transactional database
 │   └── backups/                   # Timestamped SQLite database snapshots
 ├── graphify-out/                  # Offline knowledge graph artifacts
-│   ├── graph.json                 # 317 nodes, 681 edges AST graph
+│   ├── graph.json                 # AST code graph nodes and edges
 │   ├── graph.html                 # Interactive 2D physics network visualization
 │   ├── GRAPH_TREE.html            # D3 v7 collapsible hierarchy visualization
 │   └── GRAPH_REPORT.md            # Community analysis and architectural report
@@ -328,16 +330,25 @@ silaisathi/
 │   ├── __init__.py                # Package declaration
 │   ├── config.py                  # Loopback hosts, paths, and garment metadata
 │   ├── database.py                # Parameterized SQLite persistence & backups
-│   ├── extraction.py              # Local Ollama AI client & ChatML prefill
+│   ├── extraction.py              # Ollama and Gemma 4 provider abstraction
 │   ├── orders.py                  # Job numbering, transitions & CSV export
 │   ├── printing.py                # Dual-language Karigar work slip generator
 │   ├── schemas.py                 # Pydantic schemas & integer paise arithmetic
 │   └── validation.py              # Prompt injection, formula escaping & date math
 ├── tests/
+│   ├── test_gemma_provider.py     # Gemma 4 provider test suite
 │   ├── test_graph_inspector.py    # Automated test suite for Graphify integration
 │   ├── test_silaisathi.py         # Complete pytest automated test suite
+│   ├── test_vercel_api.py         # Vercel serverless integration test suite
 │   ├── verify_offline_network.py  # Socket-level network isolation guard test
 │   └── verify_runtime.py          # Real local model live verification
+├── .do/
+│   └── app.yaml                   # DigitalOcean App Platform specification
+├── DEPLOYMENT_DIGITALOCEAN.md     # DigitalOcean App Platform container guide
+├── DEPLOYMENT_VERCEL.md           # Vercel Serverless Function deployment guide
+├── Dockerfile                     # Production OCI container specification
+├── vercel.json                    # Vercel serverless routing configuration
+├── .vercelignore                  # Vercel deployment exclusions
 ├── app.py                         # Streamlit desktop workstation UI
 ├── LICENSE                        # MIT License
 ├── pyproject.toml                 # Project configuration & dependencies

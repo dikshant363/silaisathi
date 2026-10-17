@@ -1,0 +1,35 @@
+# Vercel Deployment Ignore Rules
+# Prevents Vercel from treating root Streamlit app.py as a serverless function
+app.py
+
+# Docker & DigitalOcean configuration
+Dockerfile
+.dockerignore
+.do/
+
+# Local databases, backups, and user data
+data/
+backups/
+*.db
+*.sqlite
+*.sqlite3
+
+# Test suites and developer tooling
+tests/
+.agents/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+graphify-out/cache/
+
+# Local secrets
+.env
+.env.local
+.streamlit/secrets.toml

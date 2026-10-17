@@ -108,9 +108,9 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1792227012.030828,
-    "seen": 1792227026.5008929,
-    "ast_hash": "d422bc18785613c2f9d6c728c3ab8f93",
+    "mtime": 1792230695.3282378,
+    "seen": 1792230717.6595042,
+    "ast_hash": "5358d4bd90732af587bedd6a85971397",
     "semantic_hash": ""
   },
   "THIRD_PARTY_NOTICES.md": {
@@ -177,6 +177,30 @@
     "mtime": 1792227126.1835186,
     "seen": 1792228252.859135,
     "ast_hash": "64a99603c28b8811865274814d96b7f4",
+    "semantic_hash": ""
+  },
+  "api/index.py": {
+    "mtime": 1792230510.2271452,
+    "seen": 1792230717.6594849,
+    "ast_hash": "7f8c30ef7c110c41d05c24d9b3ef9c95",
+    "semantic_hash": ""
+  },
+  "tests/test_vercel_api.py": {
+    "mtime": 1792230578.6250546,
+    "seen": 1792230717.659497,
+    "ast_hash": "fbc648b65e190ae1701b0a8424a3413a",
+    "semantic_hash": ""
+  },
+  "vercel.json": {
+    "mtime": 1792230087.112491,
+    "seen": 1792230717.6595001,
+    "ast_hash": "4892f6eb058292aa61f89162e88f603c",
+    "semantic_hash": ""
+  },
+  "DEPLOYMENT_VERCEL.md": {
+    "mtime": 1792230670.467373,
+    "seen": 1792230717.659502,
+    "ast_hash": "c7287827094e621d11b0b751bd6c76f1",
     "semantic_hash": ""
   }
 }
