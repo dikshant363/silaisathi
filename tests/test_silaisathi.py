@@ -554,3 +554,34 @@ def test_forbidden_status_transitions():
     assert orders.is_valid_status_transition(JobStatus.DRAFT, JobStatus.COMPLETED) is False
     # Cannot jump directly from CONFIRMED to COMPLETED (must be In Progress -> Ready)
     assert orders.is_valid_status_transition(JobStatus.CONFIRMED, JobStatus.COMPLETED) is False
+
+
+def test_config_popular_measurements_defined():
+    """Regression test: verify POPULAR_MEASUREMENTS exists and matches COMMON_MEASUREMENTS keys."""
+    from silaisathi.config import COMMON_MEASUREMENTS, POPULAR_MEASUREMENTS
+
+    assert isinstance(POPULAR_MEASUREMENTS, list)
+    assert len(POPULAR_MEASUREMENTS) == 8
+    common_keys = [k for k, _ in COMMON_MEASUREMENTS]
+    for m in POPULAR_MEASUREMENTS:
+        assert m in common_keys
+
+
+def test_payment_info_from_rupees_keyword_aliases():
+    """Regression test: verify from_rupees supports both total_rs and total_rupees keyword args."""
+    p1 = PaymentInfo.from_rupees(total_rs=850.0, advance_rs=300.0)
+    p2 = PaymentInfo.from_rupees(total_rupees=850.0, advance_rupees=300.0)
+    assert p1.total_price_rs == 850.0
+    assert p1.advance_paid_rs == 300.0
+    assert p1.balance_due_rs == 550.0
+    assert p2.total_price_rs == 850.0
+    assert p2.advance_paid_rs == 300.0
+    assert p2.balance_due_rs == 550.0
+
+
+def test_app_startup_import():
+    """Regression test: verify app.py can be imported without any ImportError."""
+    import importlib
+
+    app_module = importlib.import_module("app")
+    assert app_module is not None

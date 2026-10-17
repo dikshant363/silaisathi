@@ -646,12 +646,12 @@ elif st.session_state.active_view == "Review & Edit":
             edited_measurements: dict[str, float] = {}
             col_list = [m_col1, m_col2, m_col3, m_col4]
 
-            # Merge known popular with any custom extracted
+            # Merge known popular with any custom extracted (prioritize extracted)
             all_meas_keys = list(
-                dict.fromkeys(POPULAR_MEASUREMENTS + list(init_measurements.keys()))
+                dict.fromkeys(list(init_measurements.keys()) + POPULAR_MEASUREMENTS)
             )
 
-            for idx, key in enumerate(all_meas_keys[:8]):  # First 8 popular
+            for idx, key in enumerate(all_meas_keys):
                 c = col_list[idx % 4]
                 with c:
                     default_val = float(init_measurements.get(key, 0.0))
@@ -761,9 +761,7 @@ elif st.session_state.active_view == "Review & Edit":
             else:
                 # Prepare PaymentInfo
                 clean_total = total_val if total_val > 0 else None
-                payment = PaymentInfo.from_rupees(
-                    total_rupees=clean_total, advance_rupees=advance_val
-                )
+                payment = PaymentInfo.from_rupees(total_rs=clean_total, advance_rs=advance_val)
 
                 due_date_iso = selected_date.isoformat() if selected_date else None
 

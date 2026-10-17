@@ -76,6 +76,18 @@ COMMON_MEASUREMENTS = [
     ("thigh", "Thigh (जांघ)"),
 ]
 
+# Standard Popular Measurement Keys (Top measurements for rapid workshop entry)
+POPULAR_MEASUREMENTS: list[str] = [
+    "length",
+    "chest",
+    "waist",
+    "hips",
+    "shoulder",
+    "sleeves",
+    "collar",
+    "armhole",
+]
+
 
 def ensure_data_directories() -> None:
     """Ensure data and backup directories exist."""

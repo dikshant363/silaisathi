@@ -92,19 +92,29 @@ class PaymentInfo(BaseModel):
         return self
 
     @classmethod
-    def from_rupees(cls, total_rs: float | None, advance_rs: float | None = 0.0) -> PaymentInfo:
+    def from_rupees(
+        cls,
+        total_rs: float | None = None,
+        advance_rs: float | None = 0.0,
+        *,
+        total_rupees: float | None = None,
+        advance_rupees: float | None = None,
+    ) -> PaymentInfo:
         """Create PaymentInfo safely from decimal rupee amounts."""
+        effective_total = total_rupees if total_rupees is not None else total_rs
+        effective_advance = advance_rupees if advance_rupees is not None else advance_rs
+
         total_paise: int | None = None
-        if total_rs is not None and not math.isnan(total_rs):
-            if total_rs < 0:
+        if effective_total is not None and not math.isnan(effective_total):
+            if effective_total < 0:
                 raise ValueError("Total price cannot be negative.")
-            total_paise = round(total_rs * 100)
+            total_paise = round(effective_total * 100)
 
         advance_paise = 0
-        if advance_rs is not None and not math.isnan(advance_rs):
-            if advance_rs < 0:
+        if effective_advance is not None and not math.isnan(effective_advance):
+            if effective_advance < 0:
                 raise ValueError("Advance payment cannot be negative.")
-            advance_paise = round(advance_rs * 100)
+            advance_paise = round(effective_advance * 100)
 
         return cls(total_price_paise=total_paise, advance_paid_paise=advance_paise)
 
