@@ -189,7 +189,6 @@ with st.sidebar:
         index=nav_options.index(st.session_state.active_view)
         if st.session_state.active_view in nav_options
         else 0,
-        key="nav_radio",
     )
     if chosen_view != st.session_state.active_view:
         st.session_state.active_view = chosen_view

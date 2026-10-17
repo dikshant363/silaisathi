@@ -128,7 +128,7 @@ class PaymentInfo(BaseModel):
 - **Local Inference Engine:** Ollama running open-weight `qwen3.5:4b` (3.3 GB 4-bit quantization, Apple Metal GPU acceleration)
 - **Schema Validation & Auditing:** Pydantic v2
 - **Persistence:** SQLite with Write-Ahead Logging (WAL) and parameterized queries
-- **Testing & Quality:** Pytest (28 automated tests) and Ruff linter/formatter
+- **Testing & Quality:** Pytest (29 automated tests) and Ruff linter/formatter
 
 ### Measured Performance & Test Results
 
@@ -136,7 +136,7 @@ All benchmarks and validations were executed on an Apple MacBook Air (M4, 16 GB 
 
 | Metric | Result | Evidence |
 | :--- | :--- | :--- |
-| **Pytest Suite** | **28 / 28 Passed** (0.24s) | `pytest tests/test_silaisathi.py` |
+| **Pytest Suite** | **29 / 29 Passed** (0.44s) | `pytest tests/test_silaisathi.py` |
 | **Ruff Linter & Formatter** | **Clean (0 errors, 0 warnings)** | `ruff check .` && `ruff format --check .` |
 | **Local Inference Latency** | **1.6 seconds** | Measured on Qwen 3.5 4B via Metal GPU |
 | **Memory Footprint** | **~3.6 GB total RAM** | 3.3 GB model weights + 300 MB app runtime |

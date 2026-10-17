@@ -165,7 +165,7 @@ The project includes an automated test suite verifying financial calculations, d
 .venv/bin/ruff format --check .
 ```
 
-All 28 unit tests execute in under 0.25s:
+All 29 unit tests execute in under 0.45s:
 ```
 tests/test_silaisathi.py::test_payment_info_full_values PASSED
 tests/test_silaisathi.py::test_payment_info_unknown_total PASSED
@@ -195,6 +195,7 @@ tests/test_silaisathi.py::test_forbidden_status_transitions PASSED
 tests/test_silaisathi.py::test_config_popular_measurements_defined PASSED
 tests/test_silaisathi.py::test_payment_info_from_rupees_keyword_aliases PASSED
 tests/test_silaisathi.py::test_app_startup_import PASSED
+tests/test_silaisathi.py::test_create_new_job_button_navigation PASSED
 ```
 
 ---

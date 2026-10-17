@@ -585,3 +585,19 @@ def test_app_startup_import():
 
     app_module = importlib.import_module("app")
     assert app_module is not None
+
+
+def test_create_new_job_button_navigation():
+    """Regression test: verify 'Create New Job' button switches view to 'New Job (AI Assistant)'."""
+    from streamlit.testing.v1 import AppTest
+
+    app_path = Path(__file__).parent.parent / "app.py"
+    at = AppTest.from_file(str(app_path))
+    at.run()
+    assert at.session_state["active_view"] == "Dashboard"
+
+    btn = [b for b in at.button if "Create New Job" in b.label][0]
+    btn.click().run()
+
+    assert at.session_state["active_view"] == "New Job (AI Assistant)"
+    assert at.sidebar.radio[0].value == "New Job (AI Assistant)"
