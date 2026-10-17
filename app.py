@@ -8,14 +8,20 @@ Runs completely offline on Apple Silicon / macOS via Ollama and SQLite.
 from __future__ import annotations
 
 import json
+import sys
 from datetime import date, datetime
 from pathlib import Path
 
 import streamlit as st
 import streamlit.components.v1 as components
 
-from silaisathi import database, orders, printing
-from silaisathi.config import (
+# Ensure repository root is on sys.path for Streamlit Cloud and custom working directories
+REPO_ROOT = Path(__file__).resolve().parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from silaisathi import database, orders, printing  # noqa: E402
+from silaisathi.config import (  # noqa: E402
     BACKUP_DIR,
     DEFAULT_MODEL,
     DEMO_MODE,
@@ -25,13 +31,13 @@ from silaisathi.config import (
     POPULAR_MEASUREMENTS,
     ensure_data_directories,
 )
-from silaisathi.extraction import (
+from silaisathi.extraction import (  # noqa: E402
     check_gemma_health,
     check_ollama_health,
     extract_with_llm,
     generate_sample_draft,
 )
-from silaisathi.schemas import (
+from silaisathi.schemas import (  # noqa: E402
     ExtractedDraft,
     FlagSeverity,
     JobCard,
@@ -39,7 +45,7 @@ from silaisathi.schemas import (
     MeasurementUnit,
     PaymentInfo,
 )
-from silaisathi.validation import (
+from silaisathi.validation import (  # noqa: E402
     validate_request_text,
 )
 
