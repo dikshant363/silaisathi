@@ -169,3 +169,34 @@ def test_wsgi_app_callable() -> None:
     assert status_captured[0] == "200 OK"
     body = b"".join(body_chunks).decode("utf-8")
     assert "SilaiSathi WSGI API" in body
+
+
+def test_vercel_index_py_direct_resolution(live_server: str) -> None:
+    """Verifies that requests to /api/index.py (as sent by Vercel rewrites) render dashboard."""
+    with httpx.Client(base_url=live_server) as client:
+        res = client.get("/api/index.py")
+        assert res.status_code == 200
+        assert "text/html" in res.headers["content-type"]
+        assert "SilaiSathi Workstation" in res.text
+
+
+def test_vercel_rewrite_query_parameter_resolution(live_server: str) -> None:
+    """Verifies that Vercel ?__path=... rewrites correctly dispatch to endpoints."""
+    with httpx.Client(base_url=live_server) as client:
+        # Test rewritten health check
+        res_health = client.get("/api/index.py?__path=api/health")
+        assert res_health.status_code == 200
+        assert res_health.json()["status"] == "healthy"
+
+        # Test rewritten jobs list
+        res_jobs = client.get("/api/index.py?__path=api/jobs")
+        assert res_jobs.status_code == 200
+        assert res_jobs.json()["count"] >= 3
+
+        # Test rewritten POST extract
+        res_extract = client.post(
+            "/api/index.py?__path=api/extract",
+            json={"text": "Kamla ben ka blue blouse: chest 34. Advance 200."},
+        )
+        assert res_extract.status_code == 200
+        assert res_extract.json()["success"] is True

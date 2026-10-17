@@ -387,10 +387,39 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.end_headers()
 
+    def _resolve_effective_path(self) -> str:
+        """Resolves the effective request path across direct, rewritten, and Vercel environments."""
+        parsed = urlparse(self.path)
+        query = parse_qs(parsed.query)
+
+        # 1. If Vercel passed the path via rewrite query param ?__path=...
+        if "__path" in query and query["__path"]:
+            p = query["__path"][0].strip()
+            if not p.startswith("/"):
+                p = "/" + p
+            return p.rstrip("/")
+
+        # 2. Check routing headers if passed by Vercel edge
+        for header in (
+            "x-matched-path",
+            "x-forwarded-uri",
+            "x-real-uri",
+            "x-vercel-matched-path",
+        ):
+            val = self.headers.get(header)
+            if val and not val.startswith("/api/index"):
+                return val.split("?")[0].rstrip("/")
+
+        # 3. Direct path handling: normalize /api/index.py or /api/index to root /
+        clean = parsed.path.rstrip("/")
+        if clean in ("", "/", "/api", "/api/index", "/api/index.py"):
+            return "/"
+        return clean
+
     def do_GET(self) -> None:
         """Handles GET requests for health check, jobs, stats, and the HTML dashboard."""
+        path = self._resolve_effective_path()
         parsed = urlparse(self.path)
-        path = parsed.path.rstrip("/")
 
         if path in ("/api/health", "/health"):
             data = {
@@ -438,10 +467,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         """Handles POST requests for AI extraction."""
-        parsed = urlparse(self.path)
-        path = parsed.path.rstrip("/")
+        path = self._resolve_effective_path()
 
-        if path not in ("/api/extract", "/extract"):
+        if path not in ("/api/extract", "/extract", "/", "/api/index.py"):
             self._send_json(404, {"error": "Endpoint Not Found", "path": path})
             return
 
@@ -535,7 +563,18 @@ handler = Handler
 
 def app(environ: dict, start_response: callable) -> list[bytes]:
     """Standard WSGI entrypoint callable for environments that check for `app`."""
-    path = environ.get("PATH_INFO", "/")
+    raw_path = environ.get("PATH_INFO", "/").rstrip("/")
+    query_str = environ.get("QUERY_STRING", "")
+    query = parse_qs(query_str)
+
+    if "__path" in query and query["__path"]:
+        p = query["__path"][0].strip()
+        path = ("/" + p if not p.startswith("/") else p).rstrip("/")
+    elif raw_path in ("", "/", "/api", "/api/index", "/api/index.py"):
+        path = "/"
+    else:
+        path = raw_path
+
     method = environ.get("REQUEST_METHOD", "GET")
 
     if method == "GET":
@@ -545,7 +584,7 @@ def app(environ: dict, start_response: callable) -> list[bytes]:
             ).encode("utf-8")
             start_response("200 OK", [("Content-Type", "application/json; charset=utf-8")])
             return [data]
-        elif path in ("", "/", "/api"):
+        elif path in ("", "/", "/api", "/api/index", "/api/index.py"):
             html = render_html_dashboard().encode("utf-8")
             start_response("200 OK", [("Content-Type", "text/html; charset=utf-8")])
             return [html]
