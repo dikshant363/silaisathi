@@ -6,9 +6,9 @@
     "semantic_hash": "8f4e3db3a5377558da32c1cbcdc723ac"
   },
   "app.py": {
-    "mtime": 1792228185.4159088,
-    "seen": 1792228252.8591201,
-    "ast_hash": "c0b6ef05190fe62f518625fad7c974d5",
+    "mtime": 1792234309.5931113,
+    "seen": 1792235368.870962,
+    "ast_hash": "5da41ae2a84f17088a26738e3bcecdd1",
     "semantic_hash": ""
   },
   "pyproject.toml": {
@@ -30,9 +30,9 @@
     "semantic_hash": "2b4cbe591c05de30fc243c766951e28c"
   },
   "silaisathi/config.py": {
-    "mtime": 1792228185.4147816,
-    "seen": 1792228252.859125,
-    "ast_hash": "828591b3fa8c57ec8a750f02881a3f4a",
+    "mtime": 1792235033.6976562,
+    "seen": 1792235368.8709671,
+    "ast_hash": "86cd5321b8a12b05110440c55192d52b",
     "semantic_hash": ""
   },
   "silaisathi/database.py": {
@@ -42,9 +42,9 @@
     "semantic_hash": ""
   },
   "silaisathi/extraction.py": {
-    "mtime": 1792226671.5135467,
-    "seen": 1792227026.500884,
-    "ast_hash": "35d9effbd352228e6209b10a95681c69",
+    "mtime": 1792235050.8420215,
+    "seen": 1792235368.870968,
+    "ast_hash": "794552c425dba28a1d58a7340bd75074",
     "semantic_hash": ""
   },
   "silaisathi/orders.py": {
@@ -138,9 +138,9 @@
     "semantic_hash": ""
   },
   "tests/test_gemma_provider.py": {
-    "mtime": 1792226913.6032872,
-    "seen": 1792227026.500888,
-    "ast_hash": "9ee749f32245476b55f5402d0c6d0e55",
+    "mtime": 1792235258.888564,
+    "seen": 1792235368.870971,
+    "ast_hash": "14d1737f07dc6c190552f59e99b8f9c7",
     "semantic_hash": ""
   },
   "docs/screenshots/dashboard.png": {
@@ -180,27 +180,33 @@
     "semantic_hash": ""
   },
   "api/index.py": {
-    "mtime": 1792230510.2271452,
-    "seen": 1792230717.6594849,
-    "ast_hash": "7f8c30ef7c110c41d05c24d9b3ef9c95",
+    "mtime": 1792231290.2887418,
+    "seen": 1792235368.8709602,
+    "ast_hash": "827c667ae759b4a1ff99dd3f87a00da0",
     "semantic_hash": ""
   },
   "tests/test_vercel_api.py": {
-    "mtime": 1792230578.6250546,
-    "seen": 1792230717.659497,
-    "ast_hash": "fbc648b65e190ae1701b0a8424a3413a",
+    "mtime": 1792235258.8747432,
+    "seen": 1792235368.8709729,
+    "ast_hash": "85b8e5a5981c29cd323b6cdc5c6a08f4",
     "semantic_hash": ""
   },
   "vercel.json": {
-    "mtime": 1792230087.112491,
-    "seen": 1792230717.6595001,
-    "ast_hash": "4892f6eb058292aa61f89162e88f603c",
+    "mtime": 1792231243.0543396,
+    "seen": 1792235368.870975,
+    "ast_hash": "4421176ce02bd57c5d7a81bb33f3f058",
     "semantic_hash": ""
   },
   "DEPLOYMENT_VERCEL.md": {
     "mtime": 1792230670.467373,
     "seen": 1792230717.659502,
     "ast_hash": "c7287827094e621d11b0b751bd6c76f1",
+    "semantic_hash": ""
+  },
+  "requirements.txt": {
+    "mtime": 1792234255.664135,
+    "seen": 1792235368.870982,
+    "ast_hash": "be48172ce0d62bb7aae551df1c199f8b",
     "semantic_hash": ""
   }
 }

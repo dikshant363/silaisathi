@@ -309,7 +309,9 @@ class GemmaProvider(BaseExtractionProvider):
             parts = candidates[0].get("content", {}).get("parts", [])
             if not parts:
                 raise ValueError("Gemma model returned empty content parts.")
-            raw_output = parts[0].get("text", "")
+            # Handle thinking models (e.g. Gemma 4) where earlier parts contain thought: true
+            non_thought_parts = [p.get("text", "") for p in parts if not p.get("thought")]
+            raw_output = non_thought_parts[-1] if non_thought_parts else parts[-1].get("text", "")
         except httpx.ConnectError as exc:
             raise ConnectionError(
                 f"Could not connect to Google Gemini API at {GEMMA_API_BASE}. Check internet connectivity."

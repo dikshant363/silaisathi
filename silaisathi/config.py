@@ -27,6 +27,48 @@ DEFAULT_MODEL = os.getenv("SILAISATHI_MODEL", "qwen3.5:4b")
 FALLBACK_MODELS = ["qwen3.5:4b", "gemma4:e2b", "llama3.2:3b", "mistral:7b"]
 INFERENCE_TIMEOUT_SECONDS = int(os.getenv("SILAISATHI_TIMEOUT", "60"))
 
+
+def _load_local_env_files() -> None:
+    """Load environment variables from local .env, .env.local, or .streamlit/secrets.toml if present.
+
+    Preserves existing environment variables. Never overrides explicitly set variables.
+    """
+    project_root = Path(__file__).resolve().parent.parent
+    for env_name in (".env.local", ".env"):
+        env_file = project_root / env_name
+        if env_file.is_file():
+            try:
+                for line in env_file.read_text(encoding="utf-8").splitlines():
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    if "=" in line:
+                        key, val = line.split("=", 1)
+                        key = key.strip()
+                        val = val.strip().strip("'\"")
+                        if key and key not in os.environ:
+                            os.environ[key] = val
+            except Exception:
+                pass
+
+    if "GEMINI_API_KEY" not in os.environ and "GOOGLE_API_KEY" not in os.environ:
+        secrets_toml = project_root / ".streamlit" / "secrets.toml"
+        if secrets_toml.is_file():
+            try:
+                import tomllib
+
+                with open(secrets_toml, "rb") as f:
+                    secrets = tomllib.load(f)
+                    if "GEMINI_API_KEY" in secrets:
+                        os.environ["GEMINI_API_KEY"] = str(secrets["GEMINI_API_KEY"])
+                    elif "GOOGLE_API_KEY" in secrets:
+                        os.environ["GOOGLE_API_KEY"] = str(secrets["GOOGLE_API_KEY"])
+            except Exception:
+                pass
+
+
+_load_local_env_files()
+
 # Deployment & Environment Settings
 IS_CLOUD_DEPLOYMENT = os.getenv("SILAISATHI_CLOUD_DEPLOYMENT", "0").lower() in (
     "1",

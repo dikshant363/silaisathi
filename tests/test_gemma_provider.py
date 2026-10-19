@@ -232,3 +232,43 @@ def test_gemma_prompt_injection_sanitization(monkeypatch):
         sec_flags = [f for f in draft.review_flags if f.field == "security"]
         assert len(sec_flags) == 1
         assert sec_flags[0].severity == FlagSeverity.WARNING
+
+
+def test_gemma_thinking_parts_handling(monkeypatch):
+    """Verify Gemma 4 multi-part responses with thought: true are correctly extracted."""
+    monkeypatch.setattr("silaisathi.extraction.GEMINI_API_KEY", "test-key")
+
+    mock_gemini_thinking_response = {
+        "candidates": [
+            {
+                "content": {
+                    "parts": [
+                        {
+                            "text": "* Reasoning: user requested blouse with length 15.\n* JSON formulation...",
+                            "thought": True,
+                        },
+                        {
+                            "text": json.dumps(
+                                {
+                                    "customer_name": "Radha Ji",
+                                    "garment_type": "Blouse",
+                                    "measurements": {"length": 15.0},
+                                }
+                            )
+                        },
+                    ]
+                }
+            }
+        ]
+    }
+
+    mock_response = MagicMock(spec=httpx.Response)
+    mock_response.status_code = 200
+    mock_response.json.return_value = mock_gemini_thinking_response
+    mock_response.raise_for_status.return_value = None
+
+    with patch("httpx.post", return_value=mock_response):
+        draft = extract_with_llm("Radha ji blouse length 15", provider="gemma")
+        assert draft.customer_name == "Radha Ji"
+        assert draft.garment_type == "Blouse"
+        assert draft.measurements.get("length") == 15.0

@@ -14,12 +14,23 @@ from __future__ import annotations
 import threading
 import time
 from http.server import ThreadingHTTPServer
+from unittest.mock import patch
 
 import httpx
 import pytest
 
 from api.index import app as wsgi_app
 from api.index import handler
+
+
+@pytest.fixture(autouse=True)
+def isolate_vercel_test_llm():
+    """Ensure Vercel serverless integration tests remain offline and fast by default."""
+    with (
+        patch("api.index.GEMINI_API_KEY", None),
+        patch("silaisathi.config.GEMINI_API_KEY", None),
+    ):
+        yield
 
 
 @pytest.fixture(scope="module")
